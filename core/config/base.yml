@@ -47,7 +47,7 @@ xformers_attention:
 flash_attention: true
 s2_attention:
 
-wandb_project: Gradients-On_Demand
+wandb_project: Gradients-On-Demand
 wandb_entity:
 wandb_mode: online
 wandb_run: your_name
