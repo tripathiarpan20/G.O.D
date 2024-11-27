@@ -1,6 +1,6 @@
 ### Validator Requirements
 
-A validator should be capable of running inference on multiple 8B models in parallel.
+Key requirements are to be capable of running inference on multiple 8B models in parallel.
 
 | Component    | Specification                          |
 |-------------|---------------------------------------|
@@ -12,7 +12,7 @@ A validator should be capable of running inference on multiple 8B models in para
 
 ### Miner Requirements
 
-Requirements vary based on accepted jobs and LoRA training usage.
+Requirements vary based on accepted jobs and LoRA training usage. 
 
 | Component    | Specification                           |
 |-------------|----------------------------------------|
