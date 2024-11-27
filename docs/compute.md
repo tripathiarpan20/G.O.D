@@ -1,4 +1,4 @@
-### Validator Requirements
+## Validator Requirements
 
 Key requirements are to be capable of running inference on multiple 8B models in parallel.
 
@@ -10,7 +10,7 @@ Key requirements are to be capable of running inference on multiple 8B models in
 | Example GPUs| A100 (recommended)<br>H100 (overkill) |
 | vCPUs       | 12 (minimum)<br>18+ (recommended)     |
 
-### Miner Requirements
+## Miner Requirements
 
 Requirements vary based on accepted jobs and LoRA training usage. 
 
