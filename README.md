@@ -13,5 +13,5 @@
 
 ## Recommended Compute Requirements
 
-[Compute Requirements](doc/compute.md)
+[Compute Requirements](docs/compute.md)
 
