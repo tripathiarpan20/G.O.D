@@ -47,10 +47,10 @@ xformers_attention:
 flash_attention: true
 s2_attention:
 
-wandb_project: Public_TuningSN
+wandb_project: Gradients-On-Demand
 wandb_entity:
 wandb_mode: online
-wandb_run: miner_id_24
+wandb_run: your_name
 wandb_runid: default
 
 hub_model_id:
