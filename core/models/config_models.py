@@ -22,8 +22,6 @@ class MinerConfig(BaseConfig):
     is_validator: bool = False
 
 
-
-
 @dataclass
 class ValidatorConfig(BaseConfig):
     postgres_user: str
@@ -31,9 +29,9 @@ class ValidatorConfig(BaseConfig):
     postgres_db: str
     postgres_host: str
     postgres_port: str
-    minio_endpoint: str
-    minio_access_key: str
-    minio_secret_key: str
+    s3_compatible_endpoint: str
+    s3_compatible_access_key: str
+    s3_compatible_secret_key: str
     frontend_api_key: str
     set_metagraph_weights: bool
     gpu_server: Optional[str] = None
