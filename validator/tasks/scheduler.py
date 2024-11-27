@@ -1,17 +1,20 @@
-from datetime import datetime, timedelta
+import asyncio
 import random
-from typing import Any, AsyncGenerator
+from datetime import datetime
+from datetime import timedelta
+from typing import Any
+from typing import AsyncGenerator
 
+from fiber.logging_utils import get_logger
+
+import validator.core.constants as csts
 from core.models.payload_models import DatasetRequest
 from core.models.utility_models import TaskStatus
 from validator.core.config import Config
 from validator.core.models import Task
-from validator.db.sql.tasks import add_task, get_tasks_with_status
+from validator.db.sql.tasks import add_task
+from validator.db.sql.tasks import get_tasks_with_status
 from validator.utils.call_endpoint import process_non_stream_get
-import validator.core.constants as csts
-import asyncio
-
-from fiber.logging_utils import get_logger
 
 
 logger = get_logger(name="task synth")
