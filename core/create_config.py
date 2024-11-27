@@ -87,8 +87,6 @@ def generate_validator_config(dev: bool = False) -> Dict[str, Any]:
     postgres_password = os.getenv("POSTGRES_PASSWORD")
 
     frontend_api_key = os.getenv("FRONTEND_API_KEY")
-    s3_compatible_access_key = os.getenv("S3_COMPATIBLE_ACCESS_KEY")
-    s3_compatible_secret_key = os.getenv("S3_COMPATIBLE_SECRET_KEY")
 
     subtensor_network = input(
         "🌐 Enter subtensor network (default: finney): ") or "finney"
