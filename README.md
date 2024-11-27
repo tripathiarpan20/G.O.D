@@ -1,4 +1,5 @@
-# G.O.D Subnet
+<h1 align="center">G.O.D Subnet</h1>
+
 
 🚀 Welcome to the [Gradients on Demand](https://finetuning-web.vercel.app/app) Subnet
 
