@@ -1,5 +1,11 @@
 ## For dev without docker:
 
+0. Clone the repo
+```bash
+git clone https://github.com/rayonlabs/G.O.D.git
+cd G.O.D
+```
+
 1. Run bootstrap.sh
 ```bash
 sudo -E bash bootstrap.sh

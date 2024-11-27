@@ -10,6 +10,12 @@ Steps to set-up the validator.
 
 ## Setup Steps
 
+0. Clone the repo
+```bash
+git clone https://github.com/rayonlabs/G.O.D.git
+cd G.O.D
+```
+
 1. Install system dependencies (Ubuntu 24.04 LTS):
 
 ```bash

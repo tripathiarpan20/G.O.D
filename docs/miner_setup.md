@@ -1,6 +1,6 @@
 # Miner Setup Guide
 
-This guide will walk you through the process of setting up and running a miner for the Tuning Subnet.
+This guide will walk you through the process of setting up and running a miner for the G.O.D Subnet.
 
 ## Prerequisites
 
@@ -12,6 +12,12 @@ This guide will walk you through the process of setting up and running a miner f
 
 
 ## Setup Steps
+
+0. Clone the repo
+    ```bash
+    git clone https://github.com/rayonlabs/G.O.D.git
+    cd G.O.D
+    ```
 
 1. Install system dependencies:
     ```bash
