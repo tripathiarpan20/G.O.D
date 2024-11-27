@@ -1,3 +1,5 @@
+# Compute Requirements
+
 ## Validator Requirements
 
 Key requirements are to be capable of running inference on multiple 8B models in parallel.
