@@ -104,7 +104,7 @@ async def generate_synthetic_dataset(sampled_data: List[dict], keypair: Keypair)
                     json_synthetic_data_point = synthetic_data_point
                 else:
                     consecutive_errors += 1
-             except json.JSONDecodeError:
+            except json.JSONDecodeError:
                 logger.debug(
                     f"Error decoding synthetic data point :(  - point: {synthetic_data_point}")
                 json_errors += 1
@@ -118,7 +118,6 @@ async def generate_synthetic_dataset(sampled_data: List[dict], keypair: Keypair)
                 consecutive_errors += 1
 
         except Exception as e:
-            logger.info(f"Error was {e} in side of Synth dataset gen")
             generic_errors += 1
             consecutive_errors += 1
             pass
@@ -148,8 +147,6 @@ async def generate_synthetic_dataset(sampled_data: List[dict], keypair: Keypair)
 
         logger.info(
             f"Generated {len(synthetic_dataset)} synthetic data points"
-            f"We had {json_errors} json errors, {generic_errors} generic errors"
-            f" and {consecutive_errors} consecutive errors when generating the synthetic dataset"
         )
 
         return synthetic_dataset
