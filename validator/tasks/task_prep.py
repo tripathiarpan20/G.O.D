@@ -28,9 +28,12 @@ async def save_json_to_temp_file(data: List[dict], prefix: str) -> str:
     return temp_file.name
 
 
-async def upload_json_to_minio(file_path: str, bucket_name: str, object_name: str) -> str:
-    await async_minio_client.upload_file(bucket_name, object_name, file_path)
-    return await async_minio_client.get_presigned_url(bucket_name, object_name)
+async def upload_json_to_minio(file_path: str, bucket_name: str, object_name: str) -> str | bool:
+    result = await async_minio_client.upload_file(bucket_name, object_name, file_path)
+    if not result:
+        return await async_minio_client.get_presigned_url(bucket_name, object_name)
+    else:
+        return False
 
 
 def train_test_split(dataset_name: str, test_size: float = None) -> DatasetDict:
@@ -81,6 +84,9 @@ async def get_additional_synth_data(dataset: Dataset, columns_to_sample: List[st
     try:
         sampled_data_list = list(sampled_data)
     except Exception as e:
+
+        return None
+
         logger.info(
             f"There is an issue with this sample data for some reason {sampled_data} {e}")
     synthetic_data = await generate_synthetic_dataset(sampled_data_list, keypair=keypair)
@@ -157,6 +163,13 @@ async def prepare_task(dataset_name: str, columns_to_sample: List[str], keypair:
         if synthetic_data
         else None
     )
+
+    if not train_json_url:
+        raise Exception("Failed to upload training data to MinIO storage")
+    if not test_json_url:
+        raise Exception("Failed to upload test data to MinIO storage")
+    if not synth_json_url and synthetic_data:
+        raise Exception("Failed to upload synthetic data to MinIO storage")
 
     os.remove(test_json_path)
     if synth_json_path:
