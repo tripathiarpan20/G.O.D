@@ -12,6 +12,7 @@ REDIS_KEY_COLDKEY_STAKE = "coldkey_stake"
 API_KEY = "api_key"
 COLDKEY = "coldkey"
 
+
 BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 DELETE_S3_AFTER_COMPLETE = True
 
@@ -33,8 +34,10 @@ GET_ALL_MODELS_ID = "model_id"
 
 # task stuff
 
+
 HOW_MANY_TASKS_MINIMAL_AT_THE_SAME_TIME = 6
 NUMBER_OF_MINUTES_BETWEEN_SYNTH_TASK_CHECK = 60
+
 
 
 # data stuff
