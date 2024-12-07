@@ -76,6 +76,14 @@ async def run_evaluation_docker(
         }
     }
 
+    async def cleanup_resources():
+        try:
+            await asyncio.to_thread(client.containers.prune)
+            await asyncio.to_thread(client.images.prune, filters={'dangling': True})
+            await asyncio.to_thread(client.volumes.prune)
+            logger.debug("Completed Docker resource cleanup")
+        except Exception as e:
+            logger.error(f"Cleanup failed: {str(e)}")
     try:
         container = await asyncio.to_thread(
             client.containers.run,
@@ -110,7 +118,8 @@ async def run_evaluation_docker(
     finally:
         try:
             await asyncio.to_thread(container.remove, force=True)
-            await asyncio.to_thread(client.images.prune)
-        except:
+            await cleanup_resources()
+        except Exception as e:
+            logger.info(f"A problem with cleaning up {e}")
             pass
         client.close()
