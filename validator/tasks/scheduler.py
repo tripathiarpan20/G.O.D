@@ -58,7 +58,7 @@ async def _get_the_columns_for_dataset(dataset_id: str, keypair: Keypair) -> Dat
     if not isinstance(response, dict):
         raise TypeError(f"Expected dictionary response, got {type(response)}")
     try:
-        columns = DatasetRequest(**response)
+        columns = DatasetRequest.model_validate(response)
     except Exception as exc:
         raise TypeError(
             f"The get columns for dataset endpoint should return a DatasetRequest type: {exc}")

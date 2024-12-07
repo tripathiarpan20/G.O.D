@@ -70,9 +70,10 @@ class MinerTaskResponse(BaseModel):
 
 class DatasetRequest(BaseModel):
     instruction_col: str
-    input_col: str = ''
-    output_col: str = ''
-    system_col: Optional[str] = ''
+    input_col: Optional[str] = None
+    output_col: Optional[str] = None
+    system_col: Optional[str] = None
+
 
 
 class TaskRequest(DatasetRequest):  # did not add format
