@@ -107,8 +107,6 @@ async def run_evaluation_docker(
 
         eval_results = await get_evaluation_results(container)
 
-        await asyncio.to_thread(container.remove)
-
         return EvaluationResult(**eval_results)
 
     except Exception as e:
@@ -121,5 +119,4 @@ async def run_evaluation_docker(
             await cleanup_resources()
         except Exception as e:
             logger.info(f"A problem with cleaning up {e}")
-            pass
         client.close()
