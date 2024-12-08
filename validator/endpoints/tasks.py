@@ -153,6 +153,7 @@ async def get_node_results(
     config: Config = Depends(get_config),
 ) -> AllOfNodeResults:
     try:
+        logger.info(f"The hotkey is {hotkey}")
         miner_results = [
             TaskMinerResult(**result)
             for result in await submissions_and_scoring_sql.get_all_scores_for_hotkey(hotkey, config.psql_db)
@@ -269,7 +270,6 @@ def factory_router() -> APIRouter:
         response_model=AllOfNodeResults,
         tags=["Training"],
         methods=["GET"],
-        dependencies=[Depends(get_api_key)]
     )
 
     router.add_api_route(
