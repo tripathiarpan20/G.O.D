@@ -226,7 +226,7 @@ async def get_leaderboard(
 
 
 def factory_router() -> APIRouter:
-    router = APIRouter(dependencies=[Depends(get_api_key)])
+    router = APIRouter()
 
     router.add_api_route(
         "/v1/tasks/create",
@@ -234,6 +234,7 @@ def factory_router() -> APIRouter:
         response_model=NewTaskResponse,
         tags=["Training"],
         methods=["POST"],
+        dependencies=[Depends(get_api_key)]
     )
 
     router.add_api_route(
@@ -242,6 +243,7 @@ def factory_router() -> APIRouter:
         response_model=TaskStatusResponse,
         tags=["Training"],
         methods=["GET"],
+        dependencies=[Depends(get_api_key)]
     )
 
     router.add_api_route(
@@ -250,6 +252,7 @@ def factory_router() -> APIRouter:
         response_model=NewTaskResponse,
         tags=["Training"],
         methods=["DELETE"],
+        dependencies=[Depends(get_api_key)]
     )
 
     router.add_api_route(
@@ -264,21 +267,26 @@ def factory_router() -> APIRouter:
         "/v1/tasks/node_results/{hotkey}",
         get_node_results,
         response_model=AllOfNodeResults,
-        tags=["Training"],  # ? why do we have these tags everywhere TT?
+        tags=["Training"],
         methods=["GET"],
+        dependencies=[Depends(get_api_key)]
     )
+
     router.add_api_route(
         "/v1/tasks",
         get_tasks,
         response_model=List[TaskStatusResponse],
         tags=["Training"],
         methods=["GET"],
+        dependencies=[Depends(get_api_key)]
     )
+
     router.add_api_route(
         "/v1/leaderboard",
         get_leaderboard,
         response_model=list[LeaderboardRow],
         tags=["Training"],
         methods=["GET"],
+        dependencies=[Depends(get_api_key)]
     )
     return router
