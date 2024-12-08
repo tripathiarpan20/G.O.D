@@ -175,7 +175,7 @@ async def get_all_scores_for_hotkey(hotkey: str, psql_db: PSQLDB) -> List[Dict]:
             WHERE tn.{cst.HOTKEY} = $1
             AND tn.{cst.NETUID} = $2
             AND tn.{cst.TASK_NODE_QUALITY_SCORE} IS NOT NULL
-            AND t.{cst.STATUS} = {TaskStatus.SUCCESS}
+            AND t.{cst.STATUS} = {TaskStatus.SUCCESS.value}
         """
         rows = await connection.fetch(query, hotkey, NETUID)
         return [dict(row) for row in rows]
