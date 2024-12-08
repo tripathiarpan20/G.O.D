@@ -166,7 +166,6 @@ async def get_node_results(
 async def get_task_status(
     task_id: UUID,
     config: Config = Depends(get_config),
-    api_key: str = Depends(get_api_key),
 ) -> TaskStatusResponse:
     task = await task_sql.get_task(task_id, config.psql_db)
     if not task:
