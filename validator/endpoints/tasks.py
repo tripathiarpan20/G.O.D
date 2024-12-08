@@ -154,6 +154,7 @@ async def get_node_results(
     config: Config = Depends(get_config),
 ) -> AllOfNodeResults:
     try:
+        logger.info(f"The hotkey is {hotkey}")
         miner_results = [
             TaskMinerResult(**result)
             for result in await submissions_and_scoring_sql.get_all_scores_for_hotkey(hotkey, config.psql_db)
@@ -167,7 +168,6 @@ async def get_node_results(
 async def get_task_status(
     task_id: UUID,
     config: Config = Depends(get_config),
-    api_key: str = Depends(get_api_key),
 ) -> TaskStatusResponse:
     task = await task_sql.get_task(task_id, config.psql_db)
     if not task:
@@ -228,7 +228,7 @@ async def get_leaderboard(
 
 
 def factory_router() -> APIRouter:
-    router = APIRouter(dependencies=[Depends(get_api_key)])
+    router = APIRouter()
 
     router.add_api_route(
         "/v1/tasks/create",
@@ -236,6 +236,7 @@ def factory_router() -> APIRouter:
         response_model=NewTaskResponse,
         tags=["Training"],
         methods=["POST"],
+        dependencies=[Depends(get_api_key)]
     )
 
     router.add_api_route(
@@ -244,6 +245,7 @@ def factory_router() -> APIRouter:
         response_model=TaskStatusResponse,
         tags=["Training"],
         methods=["GET"],
+        dependencies=[Depends(get_api_key)]
     )
 
     router.add_api_route(
@@ -252,10 +254,11 @@ def factory_router() -> APIRouter:
         response_model=NewTaskResponse,
         tags=["Training"],
         methods=["DELETE"],
+        dependencies=[Depends(get_api_key)]
     )
 
     router.add_api_route(
-        "/v1/tasks/results/{task_id}",
+        "/v1/tasks/task_results/{task_id}",
         get_task_results,
         response_model=TaskResultResponse,
         tags=["Training"],
@@ -266,21 +269,25 @@ def factory_router() -> APIRouter:
         "/v1/tasks/node_results/{hotkey}",
         get_node_results,
         response_model=AllOfNodeResults,
-        tags=["Training"],  # ? why do we have these tags everywhere TT?
+        tags=["Training"],
         methods=["GET"],
     )
+
     router.add_api_route(
         "/v1/tasks",
         get_tasks,
         response_model=List[TaskStatusResponse],
         tags=["Training"],
         methods=["GET"],
+        dependencies=[Depends(get_api_key)]
     )
+
     router.add_api_route(
         "/v1/leaderboard",
         get_leaderboard,
         response_model=list[LeaderboardRow],
         tags=["Training"],
         methods=["GET"],
+        dependencies=[Depends(get_api_key)]
     )
     return router

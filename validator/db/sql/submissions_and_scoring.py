@@ -6,6 +6,7 @@ from typing import List
 from typing import Optional
 from uuid import UUID
 
+from core.models.utility_models import TaskStatus
 from asyncpg.connection import Connection
 
 import validator.db.constants as cst
@@ -161,20 +162,22 @@ async def set_multiple_task_node_quality_scores(task_id: UUID, quality_scores: D
 
 async def get_all_scores_for_hotkey(hotkey: str, psql_db: PSQLDB) -> List[Dict]:
     """
-    Get all quality scores for a specific hotkey across all tasks.
+    Get all quality scores for a specific hotkey across all completed tasks.
     """
     async with await psql_db.connection() as connection:
         connection: Connection
         query = f"""
             SELECT
-                {cst.TASK_ID},
-                {cst.TASK_NODE_QUALITY_SCORE} as quality_score
-            FROM {cst.TASK_NODES_TABLE}
-            WHERE {cst.HOTKEY} = $1
-            AND {cst.NETUID} = $2
-            AND {cst.TASK_NODE_QUALITY_SCORE} IS NOT NULL
+                tn.{cst.TASK_ID},
+                tn.{cst.TASK_NODE_QUALITY_SCORE} as quality_score
+            FROM {cst.TASK_NODES_TABLE} tn
+            JOIN {cst.TASKS_TABLE} t ON tn.{cst.TASK_ID} = t.{cst.TASK_ID}
+            WHERE tn.{cst.HOTKEY} = $1
+            AND tn.{cst.NETUID} = $2
+            AND tn.{cst.TASK_NODE_QUALITY_SCORE} IS NOT NULL
+            AND t.{cst.STATUS} = $3
         """
-        rows = await connection.fetch(query, hotkey, NETUID)
+        rows = await connection.fetch(query, hotkey, NETUID, TaskStatus.SUCCESS.value)
         return [dict(row) for row in rows]
 
 
