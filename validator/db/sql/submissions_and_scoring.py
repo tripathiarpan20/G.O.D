@@ -6,6 +6,7 @@ from typing import List
 from typing import Optional
 from uuid import UUID
 
+from core.models.utility_models import TaskStatus
 from asyncpg.connection import Connection
 
 import validator.db.constants as cst
@@ -174,7 +175,7 @@ async def get_all_scores_for_hotkey(hotkey: str, psql_db: PSQLDB) -> List[Dict]:
             WHERE tn.{cst.HOTKEY} = $1
             AND tn.{cst.NETUID} = $2
             AND tn.{cst.TASK_NODE_QUALITY_SCORE} IS NOT NULL
-            AND t.{cst.STATUS} = 'success'
+            AND t.{cst.STATUS} = {TaskStatus.SUCCESS}
         """
         rows = await connection.fetch(query, hotkey, NETUID)
         return [dict(row) for row in rows]
