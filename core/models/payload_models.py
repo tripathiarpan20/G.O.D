@@ -74,7 +74,7 @@ class CreateTaskRequest(BaseModel):
     instruction_col: str = Field(..., description="The column name for the instruction", examples=["instruction"])
     input_col: str | None = Field(None, description="The column name for the input", examples=["input"])
     output_col: str | None = Field(None, description="The column name for the output", examples=["output"])
-    system_col: str | None = Field(None, description="The column name for the system", examples=["system"])
+    system_col: str | None = Field(None, description="The column name for the system (prompt)", examples=["system"])
 
     ds_repo: str = Field(..., description="The repository for the dataset", examples=["HuggingFaceFW/fineweb-2"])
     model_repo: str = Field(..., description="The repository for the model", examples=["Qwen/Qwen2.5-Coder-32B-Instruct"])
