@@ -16,6 +16,16 @@ ALTER TABLE public.tasks
     ADD COLUMN system_format text,
     ADD COLUMN trained_model_repository text;
 
+-- Since we only accept nulls for now
+ALTER TABLE public.tasks
+    ALTER COLUMN no_input_format DROP NOT NULL,
+
+ALTER TABLE public.tasks
+    ALTER COLUMN format DROP NOT NULL,
+
+
+
+-- migrate:down
 
 -- migrate:down
 ALTER TABLE public.tasks
