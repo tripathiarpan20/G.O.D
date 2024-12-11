@@ -312,7 +312,6 @@ async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[
                 ON submissions.{cst.TASK_ID} = task_nodes.{cst.TASK_ID}
                 AND submissions.{cst.HOTKEY} = task_nodes.{cst.HOTKEY}
                 AND submissions.{cst.NETUID} = task_nodes.{cst.NETUID}
-                WHERE submissions.{cst.TASK_ID} = $1
                 AND task_nodes.{cst.QUALITY_SCORE} IS NOT NULL
                 ORDER BY task_nodes.{cst.QUALITY_SCORE} DESC
                 LIMIT 1
