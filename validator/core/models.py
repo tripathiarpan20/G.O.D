@@ -38,7 +38,6 @@ class Task(BaseModel):
     termination_at: datetime | None = None
     completed_at: datetime | None = None
 
-    trained_model_repository: str | None = None
     user_id: str | None = None
 
     # Turn off protected namespace for model

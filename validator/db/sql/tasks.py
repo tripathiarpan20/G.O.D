@@ -18,8 +18,8 @@ async def add_task(task: Task, psql_db: PSQLDB) -> Task:
         connection: Connection
         query = f"""
             INSERT INTO {cst.TASKS_TABLE}
-            ({cst.MODEL_ID}, {cst.DS_ID}, {cst.SYSTEM}, {cst.INSTRUCTION}, {cst.INPUT}, {cst.STATUS},
-             {cst.HOURS_TO_COMPLETE}, {cst.OUTPUT}, {cst.FORMAT}, {cst.NO_INPUT_FORMAT}, {cst.USER_ID}, {cst.IS_ORGANIC})
+            ({cst.MODEL_ID}, {cst.DS_ID}, {cst.FIELD_SYSTEM}, {cst.FIELD_INSTRUCTION}, {cst.FIELD_INPUT}, {cst.STATUS},
+             {cst.HOURS_TO_COMPLETE}, {cst.FIELD_OUTPUT}, {cst.FORMAT}, {cst.NO_INPUT_FORMAT}, {cst.USER_ID}, {cst.IS_ORGANIC})
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING {cst.TASK_ID}
         """
@@ -63,7 +63,7 @@ async def get_tasks_with_status(status: str, psql_db: PSQLDB, include_not_ready_
     """Get all tasks with a specific status and delay_timestamp before current time if even_not_ready is False"""
 
     delay_timestamp_clause = (
-        "" if include_not_ready_tasks else f"AND ({cst.DELAY_TIMESTAMP} IS NULL OR {cst.DELAY_TIMESTAMP} <= NOW())"
+        "" if include_not_ready_tasks else f"AND ({cst.NEXT_DELAY_AT} IS NULL OR {cst.NEXT_DELAY_AT} <= NOW())"
     )
 
     async with await psql_db.connection() as connection:
@@ -107,7 +107,7 @@ async def update_task(updated_task: Task, psql_db: PSQLDB) -> Task:
                 values = list(updates.values())
                 query = f"""
                     UPDATE {cst.TASKS_TABLE}
-                    SET {set_clause}{', ' if updates else ''}{cst.UPDATED_TIMESTAMP} = CURRENT_TIMESTAMP
+                    SET {set_clause}{', ' if updates else ''}{cst.UPDATED_AT} = CURRENT_TIMESTAMP
                     WHERE {cst.TASK_ID} = $1
                     RETURNING *
                 """
@@ -115,7 +115,7 @@ async def update_task(updated_task: Task, psql_db: PSQLDB) -> Task:
             else:
                 query = f"""
                     UPDATE {cst.TASKS_TABLE}
-                    SET {cst.UPDATED_TIMESTAMP} = CURRENT_TIMESTAMP
+                    SET {cst.UPDATED_AT} = CURRENT_TIMESTAMP
                     WHERE {cst.TASK_ID} = $1
                     RETURNING *
                 """
@@ -170,7 +170,7 @@ async def get_tasks_ready_to_evaluate(psql_db: PSQLDB) -> List[Task]:
         query = f"""
             SELECT * FROM {cst.TASKS_TABLE}
             WHERE {cst.STATUS} = 'training'
-            AND NOW() AT TIME ZONE 'UTC' > {cst.END_TIMESTAMP} AT TIME ZONE 'UTC'
+            AND NOW() AT TIME ZONE 'UTC' > {cst.TERMINATION_AT} AT TIME ZONE 'UTC'
             AND EXISTS (
                 SELECT 1 FROM {cst.TASK_NODES_TABLE}
                 WHERE {cst.TASK_ID} = {cst.TASK_ID}
