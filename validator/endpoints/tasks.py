@@ -6,6 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
+from fastapi import Query
 from fastapi import Response
 from fiber.logging_utils import get_logger
 
@@ -50,6 +51,8 @@ async def delete_task(
 
 async def get_all_tasks(
     config: Config = Depends(get_config),
+    limit: int = Query(100, description="The number of tasks to return"),
+    page: int = Query(1, description="The page number to return"),
 ) -> List[TaskStatusResponse]:
     tasks_with_miners = await task_sql.get_tasks_with_miners(config.psql_db)
     task_status_responses = []
