@@ -10,12 +10,12 @@ from fastapi import Response
 from fiber.logging_utils import get_logger
 
 from core.models.payload_models import AllOfNodeResults
-from core.models.payload_models import MinerTaskResult
 from core.models.payload_models import NewTaskRequest
 from core.models.payload_models import NewTaskResponse
 from core.models.payload_models import TaskMinerResult
 from core.models.payload_models import TaskResultResponse
 from core.models.payload_models import TaskStatusResponse
+from core.models.utility_models import MinerTaskResult
 from core.models.utility_models import TaskStatus
 from core.models.utility_models import WinningSubmission
 from validator.core.config import Config
@@ -42,8 +42,7 @@ async def delete_task(
         raise HTTPException(status_code=404, detail="Task not found.")
 
     if task.user_id != user_id:
-        raise HTTPException(
-            status_code=403, detail="Not authorized to delete this task.")
+        raise HTTPException(status_code=403, detail="Not authorized to delete this task.")
 
     await task_sql.delete_task(task_id, config.psql_db)
     return Response(success=True)
@@ -80,8 +79,7 @@ async def get_tasks(
                 output_col=task.get("output"),
                 format_col=task.get("format"),
                 no_input_format_col=task.get("no_input_format"),
-                miners=[{"hotkey": miner.hotkey, "trust": miner.trust}
-                        for miner in miners],
+                miners=[{"hotkey": miner.hotkey, "trust": miner.trust} for miner in miners],
                 dataset=task.get("ds_id"),
                 started=str(task["started_timestamp"]),
                 end=str(task["end_timestamp"]),
@@ -106,8 +104,7 @@ async def create_task(
     # if there are any queued jobs that are organic we can't accept any more to avoid overloading the network
     queued_tasks = await task_sql.get_tasks_with_status(TaskStatus.DELAYED, config.psql_db, include_not_ready_tasks=True)
     if len(queued_tasks) > 0:
-        logger.info(
-            "We already have some queued organic jobs, we can't a accept any more")
+        logger.info("We already have some queued organic jobs, we can't a accept any more")
         return NewTaskResponse(success=False, task_id=None)
 
     logger.info(f"The request coming in {request}")
@@ -141,8 +138,7 @@ async def get_task_results(
 ) -> TaskResultResponse:
     try:
         scores = await submissions_and_scoring_sql.get_all_quality_scores_for_task(task_id, config.psql_db)
-        miner_results = [MinerTaskResult(
-            hotkey=hotkey, quality_score=scores[hotkey]) for hotkey in scores]
+        miner_results = [MinerTaskResult(hotkey=hotkey, quality_score=scores[hotkey]) for hotkey in scores]
     except Exception as e:
         logger.info(e)
         raise HTTPException(status_code=404, detail="Task not found.")
@@ -199,8 +195,7 @@ async def get_task_status(
         format_col=task.format,
         no_input_format_col=task.no_input_format,
         started=str(task.started_timestamp),
-        miners=[{"hotkey": miner.hotkey, "trust": miner.trust}
-                for miner in miners],
+        miners=[{"hotkey": miner.hotkey, "trust": miner.trust} for miner in miners],
         end=str(task.end_timestamp),
         created=str(task.created_timestamp),
         hours_to_complete=task.hours_to_complete,
@@ -218,11 +213,9 @@ async def get_leaderboard(
         logger.info(f"Trying node {node}")
         try:
             node_stats = await submissions_and_scoring_sql.get_all_node_stats(node.hotkey, config.psql_db)
-            leaderboard_rows.append(LeaderboardRow(
-                hotkey=node.hotkey, stats=node_stats))
+            leaderboard_rows.append(LeaderboardRow(hotkey=node.hotkey, stats=node_stats))
         except Exception as e:
-            logger.error(
-                f"Error processing scores for hotkey {node.hotkey}: {e}")
+            logger.error(f"Error processing scores for hotkey {node.hotkey}: {e}")
             continue
     return leaderboard_rows
 
@@ -236,7 +229,7 @@ def factory_router() -> APIRouter:
         response_model=NewTaskResponse,
         tags=["Training"],
         methods=["POST"],
-        dependencies=[Depends(get_api_key)]
+        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
@@ -245,7 +238,7 @@ def factory_router() -> APIRouter:
         response_model=TaskStatusResponse,
         tags=["Training"],
         methods=["GET"],
-        dependencies=[Depends(get_api_key)]
+        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
@@ -254,7 +247,7 @@ def factory_router() -> APIRouter:
         response_model=NewTaskResponse,
         tags=["Training"],
         methods=["DELETE"],
-        dependencies=[Depends(get_api_key)]
+        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
@@ -279,7 +272,7 @@ def factory_router() -> APIRouter:
         response_model=List[TaskStatusResponse],
         tags=["Training"],
         methods=["GET"],
-        dependencies=[Depends(get_api_key)]
+        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
@@ -288,6 +281,6 @@ def factory_router() -> APIRouter:
         response_model=list[LeaderboardRow],
         tags=["Training"],
         methods=["GET"],
-        dependencies=[Depends(get_api_key)]
+        dependencies=[Depends(get_api_key)],
     )
     return router

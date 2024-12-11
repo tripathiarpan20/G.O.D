@@ -51,6 +51,11 @@ class WinningSubmission(BaseModel):
     model_config = {"protected_namespaces": ()}
 
 
+class MinerTaskResult(BaseModel):
+    hotkey: str
+    quality_score: float
+
+
 
 class CustomDatasetType(BaseModel):
     system_prompt: str | None = ""

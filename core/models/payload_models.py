@@ -8,6 +8,7 @@ from core.models.utility_models import CustomDatasetType
 from core.models.utility_models import DatasetType
 from core.models.utility_models import FileFormat
 from core.models.utility_models import JobStatus
+from core.models.utility_models import MinerTaskResult
 from core.models.utility_models import TaskStatus
 from core.models.utility_models import WinningSubmission
 
@@ -128,11 +129,6 @@ class NewTaskResponse(BaseModel):
 
 class GetTasksRequest(BaseModel):
     fingerprint: str
-
-
-class MinerTaskResult(BaseModel):
-    hotkey: str
-    quality_score: float
 
 
 class TaskMinerResult(BaseModel):
