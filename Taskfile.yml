@@ -2,6 +2,12 @@ version: "3"
 
 tasks:
 
+bootstrap:
+  cmds:
+    - sudo -E ./bootstrap.sh
+    - source $HOME/.bashrc
+    - source $HOME/.venv/bin/activate
+
   config:
     cmds:
       - python -m core.create_config
