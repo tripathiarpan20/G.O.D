@@ -305,23 +305,23 @@ async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[
         connection: Connection
         query = f"""
             WITH victorious_repo AS (
-                SELECT submissions.task_id, submissions.repo
+                SELECT submissions.{cst.TASK_ID}, submissions.{cst.REPO}
                 FROM {cst.SUBMISSIONS_TABLE} submissions
                 JOIN {cst.TASK_NODES_TABLE} task_nodes
-                ON submissions.task_id = task_nodes.task_id
-                AND submissions.hotkey = task_nodes.hotkey
-                AND submissions.netuid = task_nodes.netuid
-                WHERE submissions.task_id = $1
-                AND task_nodes.quality_score IS NOT NULL
-                ORDER BY task_nodes.quality_score DESC
+                ON submissions.{cst.TASK_ID} = task_nodes.{cst.TASK_ID}
+                AND submissions.{cst.HOTKEY} = task_nodes.{cst.HOTKEY}
+                AND submissions.{cst.NETUID} = task_nodes.{cst.NETUID}
+                WHERE submissions.{cst.TASK_ID} = $1
+                AND task_nodes.{cst.QUALITY_SCORE} IS NOT NULL
+                ORDER BY task_nodes.{cst.QUALITY_SCORE} DESC
                 LIMIT 1
             )
             SELECT
                 tasks.*,
-                victorious_repo.repo as trained_model_repository
+                victorious_repo.{cst.REPO} as trained_model_repository
             FROM {cst.TASKS_TABLE} tasks
-            LEFT JOIN victorious_repo ON tasks.task_id = victorious_repo.task_id
-            ORDER BY tasks.created_timestamp DESC
+            LEFT JOIN victorious_repo ON tasks.{cst.TASK_ID} = victorious_repo.{cst.TASK_ID}
+            ORDER BY tasks.{cst.CREATED_AT} DESC
             LIMIT $1 OFFSET $2
         """
 
