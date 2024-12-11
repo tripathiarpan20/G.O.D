@@ -178,7 +178,6 @@ async def get_task_status(
         trained_model_repository = winning_submission_data["repo"]
 
     return TaskStatusResponse(
-        success=True,
         id=task_id,
         status=task.status,
         base_model_repository=task.model_id,

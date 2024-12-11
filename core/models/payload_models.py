@@ -145,17 +145,23 @@ class AllOfNodeResults(BaseModel):
 
 
 class TaskStatusResponse(BaseModel):
-    success: bool
     id: UUID
     status: TaskStatus
     base_model_repository: str
-    ds_repo: str | None
-    input_col: str | None
-    system_col: str | None
-    output_col: str | None
-    instruction_col: str
-    format_col: str | None
-    no_input_format_col: str | None
+    ds_repo: str
+
+    field_system: str | None = Field(None, description="The column name for the `system (prompt)`", examples=["system"])
+    field_instruction: str = Field(
+        ..., description="The column name for the instruction - always needs to be provided", examples=["instruction"]
+    )
+    field_input: str | None = Field(None, description="The column name for the `input`", examples=["input"])
+    field_output: str | None = Field(None, description="The column name for the `output`", examples=["output"])
+    format: str | None = Field(None, description="The column name for the `format`", examples=["{instruction} {input}"])
+    no_input_format: str | None = Field(
+        None, description="If the field_input is not provided, what format should we use? ", examples=["{instruction}"]
+    )
+    system_format: str | None = Field(None, description="How to format the `system (prompt)`", examples=["{system}"])
+
     started: str
     end: str
     created: str
