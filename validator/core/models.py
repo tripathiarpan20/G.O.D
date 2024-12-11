@@ -27,20 +27,20 @@ class ModelConfig(BaseModel):
 
 class DatasetData(BaseModel):
     dataset_id: str
-    sparse_columns: list[str]
-    non_sparse_columns: list[str]
-    tags: list[str]
-    author: str
-    disabled: bool
-    gated: bool
-    last_modified: str
-    likes: int
+    sparse_columns: list[str] = Field(default_factory=list)
+    non_sparse_columns: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    author: str | None = None
+    disabled: bool = False
+    gated: bool = False
+    last_modified: str | None = None
+    likes: int = 0
     trending_score: int | None = None
-    private: bool
-    downloads: int
-    created_at: str
+    private: bool = False
+    downloads: int = 0
+    created_at: str | None = None
     description: str | None = None
-    sha: str
+    sha: str | None = None
 
 
 class ModelData(BaseModel):
