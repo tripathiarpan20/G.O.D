@@ -54,7 +54,7 @@ async def get_all_tasks(
     limit: int = Query(100, description="The number of tasks to return"),
     page: int = Query(1, description="The page number to return"),
 ) -> List[TaskStatusResponse]:
-    tasks_with_miners = await task_sql.get_tasks_with_miners(config.psql_db)
+    tasks_with_miners = await task_sql.get_tasks_with_miners(config.psql_db, limit, page)
     task_status_responses = []
 
     for task in tasks_with_miners:
