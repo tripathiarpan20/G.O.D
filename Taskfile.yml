@@ -2,11 +2,11 @@ version: "3"
 
 tasks:
 
-bootstrap:
-  cmds:
-    - sudo -E ./bootstrap.sh
-    - source $HOME/.bashrc
-    - source $HOME/.venv/bin/activate
+  bootstrap:
+    cmds:
+      - sudo -E ./bootstrap.sh
+      - source $HOME/.bashrc
+      - source $HOME/.venv/bin/activate
 
   config:
     cmds:
