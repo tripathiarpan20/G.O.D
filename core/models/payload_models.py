@@ -85,9 +85,9 @@ class CreateTaskRequest(BaseModel):
 
 
 class CreateTaskResponse(BaseModel):
-    success: bool
-    task_id: str
-    message: str | None = None
+    success: bool = Field(..., description="Whether the task was created successfully")
+    task_id: str = Field(..., description="The ID of the task")
+    message: str | None = Field(None, description="The message from the task creation")
 
 
 class SubmitTaskSubmissionRequest(BaseModel):
