@@ -12,7 +12,7 @@ import validator.core.constants as csts
 from core.models.payload_models import DatasetColumnsResponse
 from core.models.utility_models import TaskStatus
 from validator.core.config import Config
-from validator.core.models import Task
+from validator.core.models import RawTask
 from validator.db.sql.tasks import add_task
 from validator.db.sql.tasks import get_tasks_with_status
 from validator.utils.call_endpoint import call_content_service
@@ -72,7 +72,7 @@ async def create_synthetic_task(
     current_time = datetime.utcnow()
     end_timestamp = current_time + timedelta(hours=number_of_hours)
 
-    task = Task(
+    task = RawTask(
         model_id=model_id,
         ds_id=dataset_id,
         field_system=None,

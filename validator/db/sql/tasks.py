@@ -8,11 +8,11 @@ from fiber.chain.models import Node
 
 import validator.db.constants as cst
 from core.constants import NETUID
-from validator.core.models import Task
+from validator.core.models import RawTask
 from validator.db.database import PSQLDB
 
 
-async def add_task(task: Task, psql_db: PSQLDB) -> Task:
+async def add_task(task: RawTask, psql_db: PSQLDB) -> RawTask:
     """Add a new task"""
     async with await psql_db.connection() as connection:
         connection: Connection
@@ -59,7 +59,7 @@ async def get_nodes_assigned_to_task(task_id: str, psql_db: PSQLDB) -> List[Node
         return [Node(**dict(row)) for row in rows]
 
 
-async def get_tasks_with_status(status: str, psql_db: PSQLDB, include_not_ready_tasks=False) -> List[Task]:
+async def get_tasks_with_status(status: str, psql_db: PSQLDB, include_not_ready_tasks=False) -> List[RawTask]:
     """Get all tasks with a specific status and delay_timestamp before current time if even_not_ready is False"""
 
     delay_timestamp_clause = (
@@ -74,7 +74,7 @@ async def get_tasks_with_status(status: str, psql_db: PSQLDB, include_not_ready_
             {delay_timestamp_clause}
         """
         rows = await connection.fetch(query, status)
-        return [Task(**dict(row)) for row in rows]
+        return [RawTask(**dict(row)) for row in rows]
 
 
 async def assign_node_to_task(task_id: str, node: Node, psql_db: PSQLDB) -> None:
@@ -88,7 +88,7 @@ async def assign_node_to_task(task_id: str, node: Node, psql_db: PSQLDB) -> None
         await connection.execute(query, task_id, node.hotkey, NETUID)
 
 
-async def update_task(updated_task: Task, psql_db: PSQLDB) -> Task:
+async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
     """Update a task and its assigned miners"""
     existing_task = await get_task(updated_task.task_id, psql_db)
     if not existing_task:
@@ -163,7 +163,7 @@ async def get_synthetic_set_for_task(task_id: str, psql_db: PSQLDB):
         return await connection.fetchval(query, task_id)
 
 
-async def get_tasks_ready_to_evaluate(psql_db: PSQLDB) -> List[Task]:
+async def get_tasks_ready_to_evaluate(psql_db: PSQLDB) -> List[RawTask]:
     """Get all tasks ready for evaluation"""
     async with await psql_db.connection() as connection:
         connection: Connection
@@ -178,10 +178,10 @@ async def get_tasks_ready_to_evaluate(psql_db: PSQLDB) -> List[Task]:
             )
         """
         rows = await connection.fetch(query, NETUID)
-        return [Task(**dict(row)) for row in rows]
+        return [RawTask(**dict(row)) for row in rows]
 
 
-async def get_tasks_by_user(user_id: str, psql_db: PSQLDB) -> List[Task]:
+async def get_tasks_by_user(user_id: str, psql_db: PSQLDB) -> List[RawTask]:
     """Get all tasks for a user"""
     async with await psql_db.connection() as connection:
         query = f"""
@@ -191,7 +191,7 @@ async def get_tasks_by_user(user_id: str, psql_db: PSQLDB) -> List[Task]:
             AND (tn.{cst.NETUID} = $2 OR tn.{cst.NETUID} IS NULL)
         """
         rows = await connection.fetch(query, user_id, NETUID)
-        return [Task(**dict(row)) for row in rows]
+        return [RawTask(**dict(row)) for row in rows]
 
 
 async def delete_task(task_id: UUID, psql_db: PSQLDB) -> None:
@@ -237,7 +237,7 @@ async def get_miners_for_task(task_id: UUID, psql_db: PSQLDB) -> List[Node]:
         return [Node(**dict(row)) for row in rows]
 
 
-async def get_task(task_id: UUID, psql_db: PSQLDB) -> Optional[Task]:
+async def get_task(task_id: UUID, psql_db: PSQLDB) -> Optional[RawTask]:
     """Get a task by ID"""
     async with await psql_db.connection() as connection:
         connection: Connection
@@ -246,7 +246,7 @@ async def get_task(task_id: UUID, psql_db: PSQLDB) -> Optional[Task]:
         """
         row = await connection.fetchrow(query, task_id)
         if row:
-            return Task(**dict(row))
+            return RawTask(**dict(row))
         return None
 
 
@@ -268,7 +268,7 @@ async def get_winning_submissions_for_task(task_id: UUID, psql_db: PSQLDB) -> Li
         return [dict(row) for row in rows]
 
 
-async def get_task_by_id(task_id: UUID, psql_db: PSQLDB) -> Task:
+async def get_task_by_id(task_id: UUID, psql_db: PSQLDB) -> RawTask:
     """Get a task by ID along with its winning submissions"""
     async with await psql_db.connection() as connection:
         connection: Connection
@@ -296,10 +296,10 @@ async def get_task_by_id(task_id: UUID, psql_db: PSQLDB) -> Task:
         if not row:
             return None
 
-        return Task(**dict(row))
+        return RawTask(**dict(row))
 
 
-async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[Task]:
+async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[RawTask]:
     async with await psql_db.connection() as connection:
         connection: Connection
         query = f"""
@@ -326,4 +326,4 @@ async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[
 
 
         rows = await connection.fetch(query, limit, offset)
-        return [Task(**dict(row)) for row in rows]
+        return [RawTask(**dict(row)) for row in rows]

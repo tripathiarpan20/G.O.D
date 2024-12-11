@@ -17,7 +17,7 @@ from core.models.utility_models import CustomDatasetType
 from core.models.utility_models import FileFormat
 from core.models.utility_models import TaskStatus
 from validator.core.config import Config
-from validator.core.models import Task
+from validator.core.models import RawTask
 from validator.core.refresh_nodes import get_and_store_nodes
 from validator.evaluation.scoring import evaluate_and_score
 from validator.evaluation.weight_setting import set_weights_periodically
@@ -37,7 +37,7 @@ def _get_total_dataset_size(repo_name: str) -> int:
     )
 
 
-async def _run_task_prep(task: Task, keypair: Keypair) -> Task:
+async def _run_task_prep(task: RawTask, keypair: Keypair) -> RawTask:
     logger.info(f"The task coming into task prep is {task}")
     columns_to_sample = [
         i
@@ -72,8 +72,8 @@ async def _make_offer(
 
 
 async def _select_miner_pool_and_add_to_task(
-    task: Task, nodes: list[Node], config: Config
-) -> Task:
+    task: RawTask, nodes: list[Node], config: Config
+) -> RawTask:
     if len(nodes) < cst.MINIMUM_MINER_POOL:
         logger.warning(
             f"Not enough nodes available. Need at least {cst.MINIMUM_MINER_POOL}, but only have {len(nodes)}."
@@ -155,7 +155,7 @@ async def _select_miner_pool_and_add_to_task(
 
 
 async def _let_miners_know_to_start_training(
-    task: Task, nodes: list[Node], config: Config
+    task: RawTask, nodes: list[Node], config: Config
 ):
     dataset_type = CustomDatasetType(
         field_system=task.field_system,
@@ -186,7 +186,7 @@ async def _let_miners_know_to_start_training(
         logger.info(f"The response we got from {node.node_id} was {response}")
 
 
-async def assign_miners(task: Task, config: Config):
+async def assign_miners(task: RawTask, config: Config):
     try:
 
         nodes = await nodes_sql.get_all_nodes(config.psql_db)
@@ -203,7 +203,7 @@ async def assign_miners(task: Task, config: Config):
         await tasks_sql.update_task(task, config.psql_db)
 
 
-def attempt_delay_task(task: Task):
+def attempt_delay_task(task: RawTask):
     assert (
         task.created_at is not None and task.next_delay_at is not None and task.times_delayed is not None
     ), "We wanted to check delay vs created timestamps but they are missing"
@@ -242,7 +242,7 @@ async def _find_miners_for_task(config: Config):
     )
 
 
-async def prep_task(task: Task, config: Config):
+async def prep_task(task: RawTask, config: Config):
     logger.info("Task is being prepped ready for miners")
     try:
         task.status = TaskStatus.PREPARING_DATA
@@ -268,7 +268,7 @@ async def _process_selected_tasks(config: Config):
     )
 
 
-async def _start_training_task(task: Task, config: Config) -> None:
+async def _start_training_task(task: RawTask, config: Config) -> None:
     task.started_at = datetime.datetime.now()
     task.termination_at = task.started_at + datetime.timedelta(
         hours=task.hours_to_complete
@@ -301,7 +301,7 @@ async def _process_ready_to_train_tasks(config: Config):
         await asyncio.sleep(30)
 
 
-async def _evaluate_task(task: Task, config: Config):
+async def _evaluate_task(task: RawTask, config: Config):
     try:
         task.status = TaskStatus.EVALUATING
         await tasks_sql.update_task(task, config.psql_db)
@@ -327,7 +327,7 @@ async def process_completed_tasks(config: Config) -> None:
             await asyncio.sleep(30)
 
 
-async def _move_back_to_looking_for_nodes(task: Task, config: Config):
+async def _move_back_to_looking_for_nodes(task: RawTask, config: Config):
     task.status = TaskStatus.LOOKING_FOR_NODES
     await tasks_sql.update_task(task, config.psql_db)
 
@@ -388,5 +388,5 @@ async def _run_main_validator_loop(config: Config) -> None:
         await asyncio.sleep(30)
 
 
-def init_validator_cycles(config: Config) -> Task:
+def init_validator_cycles(config: Config) -> RawTask:
     return asyncio.create_task(run_validator_cycles(config))

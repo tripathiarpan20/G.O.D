@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from pydantic import Field
 
 
-class Task(BaseModel):
+class RawTask(BaseModel):
     is_organic: bool
     task_id: UUID | None = None
     model_id: str
@@ -44,6 +44,13 @@ class Task(BaseModel):
     model_config = {"protected_namespaces": ()}
 
 
+# NOTE: As time goes on we will expand this class to be more of a 'submmited task'?
+# Might wanna rename this some more
+class Task(BaseModel):
+    task: RawTask
+    trained_model_repository: str | None = None
+
+
 class PeriodScore(BaseModel):
     quality_score: float
     summed_task_score: float
@@ -59,7 +66,7 @@ class TaskNode(BaseModel):
 
 
 class TaskResults(BaseModel):
-    task: Task
+    task: RawTask
     node_scores: list[TaskNode]
 
 

@@ -22,7 +22,7 @@ from core.models.utility_models import TaskStatus
 from validator.core.config import Config
 from validator.core.dependencies import get_api_key
 from validator.core.dependencies import get_config
-from validator.core.models import Task
+from validator.core.models import RawTask
 from validator.db.sql import submissions_and_scoring as submissions_and_scoring_sql
 from validator.db.sql import tasks as task_sql
 from validator.db.sql.nodes import get_all_nodes
@@ -63,7 +63,7 @@ async def create_task(
         return NewTaskResponse(success=False, task_id=None)
 
     logger.info(f"The request coming in {request}")
-    task = Task(
+    task = RawTask(
         model_id=request.model_repo,
         ds_id=request.ds_repo,
         field_system=request.system_col,

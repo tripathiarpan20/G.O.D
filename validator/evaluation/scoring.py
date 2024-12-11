@@ -17,8 +17,8 @@ from validator.core.config import Config
 from validator.core.models import MinerResults
 from validator.core.models import NodeAggregationResult
 from validator.core.models import PeriodScore
+from validator.core.models import RawTask
 from validator.core.models import Submission
-from validator.core.models import Task
 from validator.core.models import TaskNode
 from validator.core.models import TaskResults
 from validator.db.sql.submissions_and_scoring import add_submission
@@ -34,7 +34,7 @@ from validator.utils.minio import async_minio_client
 logger = get_logger(__name__)
 
 
-def get_task_work_score(task: Task) -> float:
+def get_task_work_score(task: RawTask) -> float:
     """Calculate work score for a task based on hours and model size."""
     assert task.hours_to_complete > 0, "Hours to complete must be positive"
     assert task.model_id, "Model ID must be present"
@@ -277,7 +277,7 @@ def add_raw_scores_to_miner_results(miner_results: list[MinerResults]) -> list[M
     return miner_results
 
 
-def _get_dataset_type(task: Task) -> CustomDatasetType:
+def _get_dataset_type(task: RawTask) -> CustomDatasetType:
     return CustomDatasetType(
         field_system=task.field_system,
         field_instruction=task.field_instruction,
@@ -302,7 +302,7 @@ async def _get_submission_repo(miner: Node, task_id: str, config: Config) -> str
 
 
 async def _evaluate_submission(
-    task: Task, submission_repo: str, dataset_type: CustomDatasetType
+    task: RawTask, submission_repo: str, dataset_type: CustomDatasetType
 ) -> tuple[EvaluationResult, EvaluationResult]:
     evaluation_params = {
         "file_format": FileFormat.JSON,
@@ -343,7 +343,7 @@ async def _clear_up_s3(file_paths: list[str]) -> None:
             logger.error(f"Failed to delete file {file_path} from MinIO: {e}")
 
 
-async def _process_miner(miner: Node, task: Task, dataset_type: CustomDatasetType, config: Config) -> MinerResults:
+async def _process_miner(miner: Node, task: RawTask, dataset_type: CustomDatasetType, config: Config) -> MinerResults:
     assert task.task_id is not None, "We should have a task id when processing the miner"
     submission_repo = await _get_submission_repo(miner, str(task.task_id), config)
     logger.info(f"Found repo {submission_repo}")
@@ -373,7 +373,7 @@ async def _process_miner(miner: Node, task: Task, dataset_type: CustomDatasetTyp
         return _create_failed_miner_result(miner.hotkey)
 
 
-async def _update_scores(task: Task, task_results: list[MinerResults], psql_db) -> None:
+async def _update_scores(task: RawTask, task_results: list[MinerResults], psql_db) -> None:
     assert task.task_id is not None, "task id needs to be seet to update scores"
     for result in task_results:
         if result.score is None:
@@ -467,7 +467,7 @@ def zero_duplicate_scores(task_results: list[MinerResults], keep_submission: dic
     return task_results
 
 
-async def evaluate_and_score(task: Task, config: Config) -> Task:
+async def evaluate_and_score(task: RawTask, config: Config) -> RawTask:
     """Main function to evaluate and score task submissions."""
     assert task.task_id is not None, "Task ID must be present"
     assert task.synthetic_data is not None, "Synthetic data must be present"
