@@ -23,6 +23,9 @@ ALTER TABLE public.tasks
 ALTER TABLE public.tasks
     ALTER COLUMN format DROP NOT NULL;
 
+ALTER TABLE public.tasks
+    DROP COLUMN user_id;
+
 -- migrate:down
 ALTER TABLE public.tasks RENAME COLUMN field_system TO system;
 ALTER TABLE public.tasks RENAME COLUMN field_instruction TO instruction;
@@ -46,3 +49,6 @@ ALTER TABLE public.tasks
 
 ALTER TABLE public.tasks
     ALTER COLUMN format SET NOT NULL;
+
+ALTER TABLE public.tasks
+    ADD COLUMN user_id text;

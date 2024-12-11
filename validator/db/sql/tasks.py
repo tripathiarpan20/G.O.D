@@ -36,7 +36,6 @@ async def add_task(task: RawTask, psql_db: PSQLDB) -> RawTask:
             task.field_output,
             task.format,
             task.no_input_format,
-            task.user_id,
             task.is_organic,
         )
         return await get_task(task_id, psql_db)
@@ -179,19 +178,6 @@ async def get_tasks_ready_to_evaluate(psql_db: PSQLDB) -> List[RawTask]:
             )
         """
         rows = await connection.fetch(query, NETUID)
-        return [RawTask(**dict(row)) for row in rows]
-
-
-async def get_tasks_by_user(user_id: str, psql_db: PSQLDB) -> List[RawTask]:
-    """Get all tasks for a user"""
-    async with await psql_db.connection() as connection:
-        query = f"""
-            SELECT DISTINCT t.* FROM {cst.TASKS_TABLE} t
-            LEFT JOIN {cst.TASK_NODES_TABLE} tn ON t.{cst.TASK_ID} = tn.{cst.TASK_ID}
-            WHERE t.{cst.USER_ID} = $1
-            AND (tn.{cst.NETUID} = $2 OR tn.{cst.NETUID} IS NULL)
-        """
-        rows = await connection.fetch(query, user_id, NETUID)
         return [RawTask(**dict(row)) for row in rows]
 
 

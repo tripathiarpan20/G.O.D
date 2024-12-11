@@ -38,7 +38,6 @@ class RawTask(BaseModel):
     termination_at: datetime | None = None
     completed_at: datetime | None = None
 
-    user_id: str | None = None
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}

@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS tasks (
     miner_scores FLOAT[],
     hours_to_complete INTEGER,
     end_timestamp TIMESTAMPTZ,
-    user_id TEXT,
     created_timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     delay_timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

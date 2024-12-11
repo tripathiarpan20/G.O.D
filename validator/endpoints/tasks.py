@@ -32,16 +32,12 @@ logger = get_logger(__name__)
 
 async def delete_task(
     task_id: UUID,
-    user_id: str = Depends(get_api_key),
     config: Config = Depends(get_config),
 ) -> Response:
     task = await task_sql.get_task(task_id, config.psql_db)
 
     if not task:
         raise HTTPException(status_code=404, detail="Task not found.")
-
-    if task.user_id != user_id:
-        raise HTTPException(status_code=403, detail="Not authorized to delete this task.")
 
     await task_sql.delete_task(task_id, config.psql_db)
     return Response(success=True)
@@ -50,7 +46,6 @@ async def delete_task(
 async def create_task(
     request: NewTaskRequest,
     config: Config = Depends(get_config),
-    user_id: str = Depends(get_api_key),
 ) -> NewTaskResponse:
     current_time = datetime.utcnow()
     end_timestamp = current_time + timedelta(hours=request.hours_to_complete)
@@ -74,7 +69,6 @@ async def create_task(
         status=TaskStatus.PENDING,
         termination_at=end_timestamp,
         hours_to_complete=request.hours_to_complete,
-        user_id=user_id,
     )
 
     task = await task_sql.add_task(task, config.psql_db)
