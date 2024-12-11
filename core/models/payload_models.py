@@ -27,8 +27,7 @@ class TrainRequest(BaseModel):
         description="Path to the dataset file or Hugging Face dataset name",
         min_length=1,
     )
-    model: str = Field(...,
-                       description="Name or path of the model to be trained", min_length=1)
+    model: str = Field(..., description="Name or path of the model to be trained", min_length=1)
     dataset_type: DatasetType | CustomDatasetType
     file_format: FileFormat
     task_id: str
@@ -71,32 +70,30 @@ class DatasetColumnsResponse(BaseModel):
     system_col: str | None = None
 
 
-
 class CreateTaskRequest(BaseModel):
-    instruction_col: str
-    input_col: str | None = None
-    output_col: str | None = None
-    system_col: str | None = None
+    instruction_col: str = Field(..., description="The column name for the instruction", examples=["instruction"])
+    input_col: str | None = Field(None, description="The column name for the input", examples=["input"])
+    output_col: str | None = Field(None, description="The column name for the output", examples=["output"])
+    system_col: str | None = Field(None, description="The column name for the system", examples=["system"])
 
-
-    ds_repo: str
-    model_repo: str
-    hours_to_complete: int
+    ds_repo: str = Field(..., description="The repository for the dataset", examples=["HuggingFaceFW/fineweb-2"])
+    model_repo: str = Field(..., description="The repository for the model", examples=["Qwen/Qwen2.5-Coder-32B-Instruct"])
+    hours_to_complete: int = Field(..., description="The number of hours to complete the task", examples=[1])
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}
+
+
+class CreateTaskResponse(BaseModel):
+    success: bool
+    task_id: str
+    message: str | None = None
 
 
 class SubmitTaskSubmissionRequest(BaseModel):
     task_id: str
     node_id: int
     repo: str
-
-
-class TaskResponse(BaseModel):
-    success: bool
-    task_id: str
-    message: str | None = None
 
 
 class SubmissionResponse(BaseModel):

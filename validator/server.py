@@ -6,9 +6,9 @@ from fastapi import HTTPException
 from fiber.logging_utils import get_logger
 
 from core.models.payload_models import CreateTaskRequest
+from core.models.payload_models import CreateTaskResponse
 from core.models.payload_models import EvaluationRequest
 from core.models.payload_models import EvaluationResult
-from core.models.payload_models import TaskResponse
 from core.models.utility_models import TaskStatus
 from validator.core.config import Config
 from validator.core.config import load_config
@@ -37,19 +37,19 @@ async def evaluate_model(request: EvaluationRequest) -> EvaluationResult:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-async def create_task(request: CreateTaskRequest, config: Config = Depends(load_config)) -> TaskResponse:
+async def create_task(request: CreateTaskRequest, config: Config = Depends(load_config)) -> CreateTaskResponse:
     task_id = str(uuid.uuid4())
     columns = [request.system_col, request.instruction_col, request.input_col, request.output_col]
     columns = [col for col in columns if col is not None]
     _, _ = await prepare_task(request.ds_repo, columns, request.model_repo, keypair=config.keypair)
     # create a job in the database
 
-    return TaskResponse(task_id=task_id, status=TaskStatus.PENDING)
+    return CreateTaskResponse(task_id=task_id, status=TaskStatus.PENDING)
 
 
-async def get_task_status(task_id: str) -> TaskResponse:
+async def get_task_status(task_id: str) -> CreateTaskResponse:
     # get the task from the database
-    return TaskResponse(task_id=task_id, status=TaskStatus.IDLE)
+    return CreateTaskResponse(task_id=task_id, status=TaskStatus.IDLE)
 
 
 def factory():
