@@ -5,6 +5,7 @@ from uuid import UUID
 
 from asyncpg.connection import Connection
 from fiber.chain.models import Node
+from loguru import logger
 
 import validator.db.constants as cst
 from core.constants import NETUID
@@ -325,5 +326,6 @@ async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[
             LIMIT $1 OFFSET $2
         """
 
+        logger.info(f"Query: {query}; limit {limit}; offset {offset}")
         rows = await connection.fetch(query, limit, offset)
         return [Task(**dict(row)) for row in rows]
