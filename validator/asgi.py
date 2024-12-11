@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
     await config.redis_db.ping()
     logger.debug("Redis connected successfully")
 
-    asyncio.create_task(sign_up_cron_job(config.keypair, config.netuid))
+    asyncio.create_task(sign_up_cron_job(config.keypair))
 
     logger.info("Starting up...")
     app.state.config = config
