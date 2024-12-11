@@ -9,6 +9,7 @@ from fiber.chain.models import Node
 import validator.db.constants as cst
 from core.constants import NETUID
 from validator.core.models import RawTask
+from validator.core.models import Task
 from validator.db.database import PSQLDB
 
 
@@ -268,7 +269,7 @@ async def get_winning_submissions_for_task(task_id: UUID, psql_db: PSQLDB) -> Li
         return [dict(row) for row in rows]
 
 
-async def get_task_by_id(task_id: UUID, psql_db: PSQLDB) -> RawTask:
+async def get_task_by_id(task_id: UUID, psql_db: PSQLDB) -> Task:
     """Get a task by ID along with its winning submissions"""
     async with await psql_db.connection() as connection:
         connection: Connection
@@ -296,10 +297,10 @@ async def get_task_by_id(task_id: UUID, psql_db: PSQLDB) -> RawTask:
         if not row:
             return None
 
-        return RawTask(**dict(row))
+        return Task(**dict(row))
 
 
-async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[RawTask]:
+async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[Task]:
     async with await psql_db.connection() as connection:
         connection: Connection
         query = f"""
@@ -324,6 +325,5 @@ async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[
             LIMIT $1 OFFSET $2
         """
 
-
         rows = await connection.fetch(query, limit, offset)
-        return [RawTask(**dict(row)) for row in rows]
+        return [Task(**dict(row)) for row in rows]

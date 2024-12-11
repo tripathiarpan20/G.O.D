@@ -46,8 +46,7 @@ class RawTask(BaseModel):
 
 # NOTE: As time goes on we will expand this class to be more of a 'submmited task'?
 # Might wanna rename this some more
-class Task(BaseModel):
-    task: RawTask
+class Task(RawTask):
     trained_model_repository: str | None = None
 
 
