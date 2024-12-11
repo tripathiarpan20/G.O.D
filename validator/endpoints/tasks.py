@@ -163,7 +163,7 @@ async def get_miner_breakdown(
     except Exception as e:
         logger.info(e)
         raise HTTPException(status_code=404, detail="Task not found.")
-    return TaskResultResponse(success=True, id=task_id, miner_results=miner_results)
+    return TaskResultResponse(id=task_id, miner_results=miner_results)
 
 
 async def get_leaderboard(
