@@ -5,7 +5,6 @@ import uvicorn
 from dotenv import load_dotenv
 
 from validator.utils.call_endpoint import sign_up_cron_job
-from validator.utils.call_endpoint import sign_up_to_gradients
 
 
 load_dotenv(os.getenv("ENV_FILE", ".env"))
@@ -38,10 +37,7 @@ async def lifespan(app: FastAPI):
     await config.redis_db.ping()
     logger.debug("Redis connected successfully")
 
-    logger.info("Signing up to Gradients API...")
-    await sign_up_to_gradients(config.keypair)
-
-    asyncio.create_task(sign_up_cron_job(config.keypair))
+    asyncio.create_task(sign_up_cron_job(config.keypair, config.netuid))
 
     logger.info("Starting up...")
     app.state.config = config
