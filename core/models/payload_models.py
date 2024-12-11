@@ -68,17 +68,17 @@ class MinerTaskResponse(BaseModel):
 
 
 class DatasetColumnsResponse(BaseModel):
-    instruction_col: str
-    input_col: str | None = None
-    output_col: str | None = None
-    system_col: str | None = None
+    field_instruction: str
+    field_input: str | None = None
+    field_output: str | None = None
+    field_system: str | None = None
 
 
 class CreateTaskRequest(BaseModel):
-    instruction_col: str = Field(..., description="The column name for the instruction", examples=["instruction"])
-    input_col: str | None = Field(None, description="The column name for the input", examples=["input"])
-    output_col: str | None = Field(None, description="The column name for the output", examples=["output"])
-    system_col: str | None = Field(None, description="The column name for the system (prompt)", examples=["system"])
+    field_instruction: str = Field(..., description="The column name for the instruction", examples=["instruction"])
+    field_input: str | None = Field(None, description="The column name for the input", examples=["input"])
+    field_output: str | None = Field(None, description="The column name for the output", examples=["output"])
+    field_system: str | None = Field(None, description="The column name for the system (prompt)", examples=["system"])
 
     ds_repo: str = Field(..., description="The repository for the dataset", examples=["HuggingFaceFW/fineweb-2"])
     model_repo: str = Field(..., description="The repository for the model", examples=["Qwen/Qwen2.5-Coder-32B-Instruct"])
@@ -107,18 +107,18 @@ class SubmissionResponse(BaseModel):
 
 
 class NewTaskRequest(BaseModel):
-    instruction_col: str = Field(..., description="The column name for the instruction", examples=["instruction"])
-    input_col: str | None = Field(None, description="The column name for the input", examples=["input"])
-    output_col: str | None = Field(None, description="The column name for the output", examples=["output"])
-    system_col: str | None = Field(None, description="The column name for the system (prompt)", examples=["system"])
+    field_instruction: str = Field(..., description="The column name for the instruction", examples=["instruction"])
+    field_input: str | None = Field(None, description="The column name for the input", examples=["input"])
+    field_output: str | None = Field(None, description="The column name for the output", examples=["output"])
+    field_system: str | None = Field(None, description="The column name for the system (prompt)", examples=["system"])
 
     ds_repo: str = Field(..., description="The repository for the dataset", examples=["HuggingFaceFW/fineweb-2"])
     model_repo: str = Field(..., description="The repository for the model", examples=["Qwen/Qwen2.5-Coder-32B-Instruct"])
 
     hours_to_complete: int = Field(..., description="The number of hours to complete the task", examples=[1])
 
-    format_col: str | None = None  # NOTE: What is this?
-    no_input_format_col: str | None = None  # NOTE: What is this?
+    format: None = None
+    no_input_format: None = None
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}
@@ -143,7 +143,6 @@ class AllOfNodeResults(BaseModel):
     success: bool
     hotkey: str
     task_results: list[TaskMinerResult] | None
-
 
 
 class TaskDetails(BaseModel):
