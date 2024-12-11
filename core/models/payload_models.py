@@ -9,6 +9,7 @@ from core.models.utility_models import DatasetType
 from core.models.utility_models import FileFormat
 from core.models.utility_models import JobStatus
 from core.models.utility_models import MinerTaskResult
+from core.models.utility_models import TaskMinerResult
 from core.models.utility_models import TaskStatus
 from core.models.utility_models import WinningSubmission
 
@@ -131,21 +132,17 @@ class GetTasksRequest(BaseModel):
     fingerprint: str
 
 
-class TaskMinerResult(BaseModel):
-    task_id: UUID
-    quality_score: float
+
+class TaskResultResponse(BaseModel):
+    success: bool
+    id: UUID
+    miner_results: list[MinerTaskResult] | None
 
 
 class AllOfNodeResults(BaseModel):
     success: bool
     hotkey: str
     task_results: list[TaskMinerResult] | None
-
-
-class TaskResultResponse(BaseModel):
-    success: bool
-    id: UUID
-    miner_results: list[MinerTaskResult] | None
 
 
 class TaskStatusResponse(BaseModel):

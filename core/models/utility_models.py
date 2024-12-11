@@ -1,5 +1,6 @@
 import uuid
 from enum import Enum
+from uuid import UUID
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -55,6 +56,11 @@ class MinerTaskResult(BaseModel):
     hotkey: str
     quality_score: float
 
+
+# NOTE: Confusing name with the class above
+class TaskMinerResult(BaseModel):
+    task_id: UUID
+    quality_score: float
 
 
 class CustomDatasetType(BaseModel):

@@ -6,11 +6,11 @@ from typing import List
 from typing import Optional
 from uuid import UUID
 
-from core.models.utility_models import TaskStatus
 from asyncpg.connection import Connection
 
 import validator.db.constants as cst
 from core.constants import NETUID
+from core.models.utility_models import TaskStatus
 from validator.core.models import AllNodeStats
 from validator.core.models import ModelMetrics
 from validator.core.models import NodeStats
@@ -222,8 +222,7 @@ async def get_aggregate_scores_since(start_time: datetime, psql_db: PSQLDB) -> L
         results = []
         for row in rows:
             row_dict = dict(row)
-            task_dict = {k: v for k, v in row_dict.items() if k !=
-                         "node_scores"}
+            task_dict = {k: v for k, v in row_dict.items() if k != "node_scores"}
             task = Task(**task_dict)
 
             node_scores_data = row_dict["node_scores"]
@@ -234,8 +233,7 @@ async def get_aggregate_scores_since(start_time: datetime, psql_db: PSQLDB) -> L
                 TaskNode(
                     task_id=str(node[cst.TASK_ID]),
                     hotkey=node[cst.HOTKEY],
-                    quality_score=float(
-                        node[cst.QUALITY_SCORE]) if node[cst.QUALITY_SCORE] is not None else None,
+                    quality_score=float(node[cst.QUALITY_SCORE]) if node[cst.QUALITY_SCORE] is not None else None,
                 )
                 for node in node_scores_data
             ]
@@ -252,7 +250,7 @@ async def get_node_quality_metrics(hotkey: str, interval: str, psql_db: PSQLDB) 
             SELECT
                 COALESCE(AVG(tn.{cst.QUALITY_SCORE}), 0) as avg_quality_score,
                 COALESCE(COUNT(CASE WHEN tn.{cst.QUALITY_SCORE} > 0 THEN 1 END)::FLOAT / NULLIF(COUNT(*), 0), 0) as success_rate,
-                COALESCE(COUNT(CASE WHEN tn.{cst.QUALITY_SCORE} > 0.85 THEN 1 END)::FLOAT / NULLIF(COUNT(*), 0), 0) as quality_rate,
+            COALESCE(COUNT(CASE WHEN tn.{cst.QUALITY_SCORE} > 0.85 THEN 1 END)::FLOAT / NULLIF(COUNT(*), 0), 0) as quality_rate,
                 COALESCE(COUNT(*), 0) as total_count,
                 COALESCE(SUM(tn.{cst.QUALITY_SCORE}), 0) as total_score,
                 COALESCE(COUNT(CASE WHEN tn.{cst.QUALITY_SCORE} > 0 THEN 1 END), 0) as total_success,

@@ -12,10 +12,10 @@ from fiber.logging_utils import get_logger
 from core.models.payload_models import AllOfNodeResults
 from core.models.payload_models import NewTaskRequest
 from core.models.payload_models import NewTaskResponse
-from core.models.payload_models import TaskMinerResult
 from core.models.payload_models import TaskResultResponse
 from core.models.payload_models import TaskStatusResponse
 from core.models.utility_models import MinerTaskResult
+from core.models.utility_models import TaskMinerResult
 from core.models.utility_models import TaskStatus
 from core.models.utility_models import WinningSubmission
 from validator.core.config import Config
