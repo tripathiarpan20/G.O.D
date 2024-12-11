@@ -25,7 +25,6 @@ logger = get_logger(name="task synth")
 
 async def _get_models(keypair: Keypair) -> AsyncGenerator[str, None]:
     response: list[dict[str, Any]] = await call_content_service(csts.GET_RANDOM_MODELS_ENDPOINT, keypair)
-    logger.info(f"Get model response was {response}")
     models = [ModelData(**model) for model in response]
     random.shuffle(models)
     for m in models:
@@ -34,7 +33,6 @@ async def _get_models(keypair: Keypair) -> AsyncGenerator[str, None]:
 
 async def _get_datasets(keypair: Keypair) -> AsyncGenerator[str, None]:
     response: list[dict[str, Any]] = await call_content_service(csts.GET_RANDOM_DATASETS_ENDPOINT, keypair)
-    logger.info(f"Get dataset response was {response}")
     datasets = [DatasetData(**ds) for ds in response]
     random.shuffle(datasets)
     for ds in datasets:
