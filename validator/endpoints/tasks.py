@@ -50,8 +50,8 @@ async def delete_task(
 async def create_task(
     request: NewTaskRequest,
     config: Config = Depends(get_config),
+    user_id: str = Depends(get_api_key),
 ) -> NewTaskResponse:
-    logger.info(f"The request coming in is {request}")
     current_time = datetime.utcnow()
     end_timestamp = current_time + timedelta(hours=request.hours_to_complete)
 
@@ -61,7 +61,6 @@ async def create_task(
         logger.info("We already have some queued organic jobs, we can't a accept any more")
         return NewTaskResponse(success=False, task_id=None)
 
-    logger.info(f"The request coming in {request}")
     task = RawTask(
         model_id=request.model_repo,
         ds_id=request.ds_repo,
@@ -75,9 +74,8 @@ async def create_task(
         status=TaskStatus.PENDING,
         termination_at=end_timestamp,
         hours_to_complete=request.hours_to_complete,
+        user_id=user_id,
     )
-
-    logger.info(f"The Task is {task}")
 
     task = await task_sql.add_task(task, config.psql_db)
 

@@ -18,36 +18,31 @@ ALTER TABLE public.tasks
 
 -- Since we only accept nulls for now
 ALTER TABLE public.tasks
-    ALTER COLUMN no_input_format DROP NOT NULL,
+    ALTER COLUMN no_input_format DROP NOT NULL;
 
 ALTER TABLE public.tasks
-    ALTER COLUMN format DROP NOT NULL,
-
-
+    ALTER COLUMN format DROP NOT NULL;
 
 -- migrate:down
-
--- migrate:down
-ALTER TABLE public.tasks
-    ALTER COLUMN task_id SET NOT NULL,
-    ALTER COLUMN field_system SET NOT NULL,
-    ALTER COLUMN field_input SET NOT NULL,
-    ALTER COLUMN field_output SET NOT NULL,
-    ALTER COLUMN format SET NOT NULL,
-    ALTER COLUMN no_input_format SET NOT NULL,
-    ALTER COLUMN test_data SET NOT NULL,
-    ALTER COLUMN synthetic_data SET NOT NULL,
-    ALTER COLUMN training_data SET NOT NULL,
-    ALTER COLUMN miner_scores SET NOT NULL,
-    ALTER COLUMN end_timestamp SET NOT NULL,
-    ALTER COLUMN user_id SET NOT NULL;
-
-ALTER TABLE public.tasks
-    DROP COLUMN system_format,
-    DROP COLUMN assigned_miners,
-    DROP COLUMN trained_model_repository;
-
 ALTER TABLE public.tasks RENAME COLUMN field_system TO system;
 ALTER TABLE public.tasks RENAME COLUMN field_instruction TO instruction;
 ALTER TABLE public.tasks RENAME COLUMN field_input TO input;
 ALTER TABLE public.tasks RENAME COLUMN field_output TO output;
+ALTER TABLE public.tasks RENAME COLUMN times_delayed TO delay_times;
+
+ALTER TABLE public.tasks RENAME COLUMN termination_at TO end_timestamp;
+ALTER TABLE public.tasks RENAME COLUMN created_at TO created_timestamp;
+ALTER TABLE public.tasks RENAME COLUMN next_delay_at TO delay_timestamp;
+ALTER TABLE public.tasks RENAME COLUMN updated_at TO updated_timestamp;
+ALTER TABLE public.tasks RENAME COLUMN started_at TO started_timestamp;
+ALTER TABLE public.tasks RENAME COLUMN completed_at TO completed_timestamp;
+
+ALTER TABLE public.tasks
+    DROP COLUMN system_format,
+    DROP COLUMN trained_model_repository;
+
+ALTER TABLE public.tasks
+    ALTER COLUMN no_input_format SET NOT NULL;
+
+ALTER TABLE public.tasks
+    ALTER COLUMN format SET NOT NULL;
