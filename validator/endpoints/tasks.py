@@ -90,7 +90,7 @@ async def get_node_results(
     except Exception as e:
         logger.info(e)
         raise HTTPException(status_code=404, detail="Hotkey not found")
-    return AllOfNodeResults(success=True, hotkey=hotkey, task_results=miner_results)
+    return AllOfNodeResults(hotkey=hotkey, task_results=miner_results)
 
 
 async def get_all_task_details(
@@ -153,7 +153,7 @@ async def get_task_details(
     )
 
 
-async def get_task_results(
+async def get_miner_breakdown(
     task_id: UUID,
     config: Config = Depends(get_config),
 ) -> TaskResultResponse:
@@ -205,8 +205,8 @@ def factory_router() -> APIRouter:
     )
 
     router.add_api_route(
-        "/v1/tasks/task_results/{task_id}",
-        get_task_results,
+        "/v1/tasks/breakdown/{task_id}",
+        get_miner_breakdown,
         methods=["GET"],
     )
 
