@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS tasks (
     task_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     model_id TEXT NOT NULL,
     ds_id TEXT NOT NULL,
-    file_format TEXT NOT NULL,
     system TEXT,
     instruction TEXT NOT NULL,
     input TEXT,
