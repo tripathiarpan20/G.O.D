@@ -1,7 +1,3 @@
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
 from uuid import UUID
 
 from fiber.logging_utils import get_logger
@@ -68,15 +64,21 @@ class MinerTaskResponse(BaseModel):
     accepted: bool
 
 
-class DatasetRequest(BaseModel):
+class DatasetColumnsResponse(BaseModel):
     instruction_col: str
-    input_col: Optional[str] = None
-    output_col: Optional[str] = None
-    system_col: Optional[str] = None
+    input_col: str | None = None
+    output_col: str | None = None
+    system_col: str | None = None
 
 
 
-class TaskRequest(DatasetRequest):  # did not add format
+class CreateTaskRequest(BaseModel):
+    instruction_col: str
+    input_col: str | None = None
+    output_col: str | None = None
+    system_col: str | None = None
+
+
     ds_repo: str
     model_repo: str
     hours_to_complete: int
@@ -94,25 +96,25 @@ class SubmitTaskSubmissionRequest(BaseModel):
 class TaskResponse(BaseModel):
     success: bool
     task_id: str
-    message: Optional[str] = None
+    message: str | None = None
 
 
 class SubmissionResponse(BaseModel):
     success: bool
     message: str
-    submission_id: Optional[str] = None
+    submission_id: str | None = None
 
 
 class NewTaskRequest(BaseModel):
     model_repo: str
     ds_repo: str
     instruction_col: str
-    input_col: Optional[str] = None
+    input_col: str | None = None
     hours_to_complete: int
-    system_col: Optional[str] = None
-    output_col: Optional[str] = None
-    format_col: Optional[str] = None
-    no_input_format_col: Optional[str] = None
+    system_col: str | None = None
+    output_col: str | None = None
+    format_col: str | None = None
+    no_input_format_col: str | None = None
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}
@@ -124,7 +126,7 @@ class GetTasksRequest(BaseModel):
 
 class NewTaskResponse(BaseModel):
     success: bool
-    task_id: Optional[UUID] = None
+    task_id: UUID | None = None
 
 
 class WinningSubmission(BaseModel):
@@ -149,33 +151,33 @@ class TaskMinerResult(BaseModel):
 class AllOfNodeResults(BaseModel):
     success: bool
     hotkey: str
-    task_results: Optional[list[TaskMinerResult]]
+    task_results: list[TaskMinerResult] | None
 
 
 class TaskResultResponse(BaseModel):
     success: bool
     id: UUID
-    miner_results: Optional[list[MinerTaskResult]]
+    miner_results: list[MinerTaskResult] | None
 
 
 class TaskStatusResponse(BaseModel):
     success: bool
     id: UUID
     status: TaskStatus
-    miners: Optional[List[Dict]]
+    miners: list[dict] | None  # TODO: Improve with actual types
     model_repo: str
-    ds_repo: Optional[str]
-    input_col: Optional[str]
-    system_col: Optional[str]
-    output_col: Optional[str]
-    instruction_col: Optional[str]
-    format_col: Optional[str]
-    no_input_format_col: Optional[str]
+    ds_repo: str | None
+    input_col: str | None
+    system_col: str | None
+    output_col: str | None
+    instruction_col: str
+    format_col: str | None
+    no_input_format_col: str | None
     started: str
     end: str
     created: str
     hours_to_complete: int
-    winning_submission: Optional[Union[WinningSubmission, None]] = None
+    winning_submission: WinningSubmission | None = None
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}

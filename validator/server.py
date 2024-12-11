@@ -5,9 +5,9 @@ from fastapi import Depends
 from fastapi import HTTPException
 from fiber.logging_utils import get_logger
 
+from core.models.payload_models import CreateTaskRequest
 from core.models.payload_models import EvaluationRequest
 from core.models.payload_models import EvaluationResult
-from core.models.payload_models import TaskRequest
 from core.models.payload_models import TaskResponse
 from core.models.utility_models import TaskStatus
 from validator.core.config import Config
@@ -37,7 +37,7 @@ async def evaluate_model(request: EvaluationRequest) -> EvaluationResult:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-async def create_task(request: TaskRequest, config: Config = Depends(load_config)) -> TaskResponse:
+async def create_task(request: CreateTaskRequest, config: Config = Depends(load_config)) -> TaskResponse:
     task_id = str(uuid.uuid4())
     columns = [request.system_col, request.instruction_col, request.input_col, request.output_col]
     columns = [col for col in columns if col is not None]
