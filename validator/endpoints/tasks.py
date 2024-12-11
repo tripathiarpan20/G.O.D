@@ -30,6 +30,15 @@ from validator.db.sql.nodes import get_all_nodes
 logger = get_logger(__name__)
 
 
+TASKS_CREATE_ENDPOINT = "/v1/tasks/create"
+GET_TASKS_ENDPOINT = "/v1/tasks"
+GET_TASK_DETAILS_ENDPOINT = "/v1/tasks/{task_id}"
+GET_TASKS_RESULTS_ENDPOINT = "/v1/tasks/breakdown/{task_id}"
+GET_NODE_RESULTS_ENDPOINT = "/v1/tasks/node_results/{hotkey}"
+DELETE_TASK_ENDPOINT = "/v1/tasks/delete/{task_id}"
+LEADERBOARD_ENDPOINT = "/v1/leaderboard"
+
+
 async def delete_task(
     task_id: UUID,
     config: Config = Depends(get_config),
@@ -186,45 +195,12 @@ async def get_leaderboard(
 def factory_router() -> APIRouter:
     router = APIRouter(tags=["Gradients On Demand"], dependencies=[Depends(get_api_key)])
 
-    router.add_api_route(
-        "/v1/tasks/create",
-        create_task,
-        methods=["POST"],
-    )
+    router.add_api_route(TASKS_CREATE_ENDPOINT, create_task, methods=["POST"])
+    router.add_api_route(GET_TASK_DETAILS_ENDPOINT, get_task_details, methods=["GET"])
+    router.add_api_route(DELETE_TASK_ENDPOINT, delete_task, methods=["DELETE"])
+    router.add_api_route(GET_TASKS_RESULTS_ENDPOINT, get_miner_breakdown, methods=["GET"])
+    router.add_api_route(GET_NODE_RESULTS_ENDPOINT, get_node_results, methods=["GET"])
+    router.add_api_route(GET_TASKS_ENDPOINT, get_all_task_details, methods=["GET"])
+    router.add_api_route(LEADERBOARD_ENDPOINT, get_leaderboard, methods=["GET"])
 
-    router.add_api_route(
-        "/v1/tasks/{task_id}",
-        get_task_details,
-        methods=["GET"],
-    )
-
-    router.add_api_route(
-        "/v1/tasks/delete/{task_id}",
-        delete_task,
-        methods=["DELETE"],
-    )
-
-    router.add_api_route(
-        "/v1/tasks/breakdown/{task_id}",
-        get_miner_breakdown,
-        methods=["GET"],
-    )
-
-    router.add_api_route(
-        "/v1/tasks/node_results/{hotkey}",
-        get_node_results,
-        methods=["GET"],
-    )
-
-    router.add_api_route(
-        "/v1/tasks",
-        get_all_task_details,
-        methods=["GET"],
-    )
-
-    router.add_api_route(
-        "/v1/leaderboard",
-        get_leaderboard,
-        methods=["GET"],
-    )
     return router
