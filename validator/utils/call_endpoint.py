@@ -252,6 +252,8 @@ async def sign_up_to_gradients(keypair: Keypair):
 async def sign_up_cron_job(keypair: Keypair) -> None:
     if NETUID != 56:
         return
+
+    print(f"NETUID: {NETUID}")
     # In case initial signup fails, we try again every 3 hours
     while True:
         await sign_up_to_gradients(keypair)
