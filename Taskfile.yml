@@ -27,7 +27,7 @@ tasks:
   validator_dev:
     cmds:
       - docker compose --env-file .vali.env -f docker-compose.yml -f docker-compose.dev.yml up -d --build
-      - docker compose --env-file .vali.env -f docker-compose.yml run dbmate --wait up
+      - docker compose --env-file .vali.env -f docker-compose.yml -f docker-compose.dev.yml  run dbmate --wait up
       - pm2 delete validator || true
       - ./utils/start_validator.sh
 
