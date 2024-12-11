@@ -129,11 +129,6 @@ class AllNodeStats(BaseModel):
     all_time: NodeStats
 
 
-class LeaderboardRow(BaseModel):
-    hotkey: str
-    stats: AllNodeStats
-
-
 class DatasetUrls(BaseModel):
     test_url: str
     synthetic_url: Optional[str] = None
@@ -153,7 +148,7 @@ class DatasetJsons(BaseModel):
 
     def to_json_strings(self) -> dict[str, str]:
         return {
-            'train_data': json.dumps(self.train_data),
-            'test_data': json.dumps(self.test_data),
-            'synthetic_data': json.dumps(self.synthetic_data) if self.synthetic_data else ""
+            "train_data": json.dumps(self.train_data),
+            "test_data": json.dumps(self.test_data),
+            "synthetic_data": json.dumps(self.synthetic_data) if self.synthetic_data else "",
         }

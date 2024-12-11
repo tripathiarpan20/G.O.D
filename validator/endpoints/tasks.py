@@ -10,6 +10,7 @@ from fastapi import Response
 from fiber.logging_utils import get_logger
 
 from core.models.payload_models import AllOfNodeResults
+from core.models.payload_models import LeaderboardRow
 from core.models.payload_models import NewTaskRequest
 from core.models.payload_models import NewTaskResponse
 from core.models.payload_models import TaskResultResponse
@@ -21,7 +22,6 @@ from core.models.utility_models import WinningSubmission
 from validator.core.config import Config
 from validator.core.dependencies import get_api_key
 from validator.core.dependencies import get_config
-from validator.core.models import LeaderboardRow
 from validator.core.models import Task
 from validator.db.sql import submissions_and_scoring as submissions_and_scoring_sql
 from validator.db.sql import tasks as task_sql
@@ -95,7 +95,6 @@ async def get_tasks(
 async def create_task(
     request: NewTaskRequest,
     config: Config = Depends(get_config),
-    api_key: str = Depends(get_api_key),
 ) -> NewTaskResponse:
     logger.info(f"The request coming in is {request}")
     current_time = datetime.utcnow()
@@ -226,7 +225,6 @@ def factory_router() -> APIRouter:
     router.add_api_route(
         "/v1/tasks/create",
         create_task,
-        response_model=NewTaskResponse,
         tags=["Training"],
         methods=["POST"],
         dependencies=[Depends(get_api_key)],
@@ -235,7 +233,6 @@ def factory_router() -> APIRouter:
     router.add_api_route(
         "/v1/tasks/{task_id}",
         get_task_status,
-        response_model=TaskStatusResponse,
         tags=["Training"],
         methods=["GET"],
         dependencies=[Depends(get_api_key)],
@@ -244,7 +241,6 @@ def factory_router() -> APIRouter:
     router.add_api_route(
         "/v1/tasks/delete/{task_id}",
         delete_task,
-        response_model=NewTaskResponse,
         tags=["Training"],
         methods=["DELETE"],
         dependencies=[Depends(get_api_key)],
@@ -253,23 +249,22 @@ def factory_router() -> APIRouter:
     router.add_api_route(
         "/v1/tasks/task_results/{task_id}",
         get_task_results,
-        response_model=TaskResultResponse,
         tags=["Training"],
         methods=["GET"],
+        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
         "/v1/tasks/node_results/{hotkey}",
         get_node_results,
-        response_model=AllOfNodeResults,
         tags=["Training"],
         methods=["GET"],
+        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
         "/v1/tasks",
         get_tasks,
-        response_model=List[TaskStatusResponse],
         tags=["Training"],
         methods=["GET"],
         dependencies=[Depends(get_api_key)],
@@ -278,7 +273,6 @@ def factory_router() -> APIRouter:
     router.add_api_route(
         "/v1/leaderboard",
         get_leaderboard,
-        response_model=list[LeaderboardRow],
         tags=["Training"],
         methods=["GET"],
         dependencies=[Depends(get_api_key)],

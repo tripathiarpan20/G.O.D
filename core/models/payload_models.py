@@ -12,6 +12,7 @@ from core.models.utility_models import MinerTaskResult
 from core.models.utility_models import TaskMinerResult
 from core.models.utility_models import TaskStatus
 from core.models.utility_models import WinningSubmission
+from validator.core.models import AllNodeStats
 
 
 logger = get_logger(__name__)
@@ -132,7 +133,6 @@ class GetTasksRequest(BaseModel):
     fingerprint: str
 
 
-
 class TaskResultResponse(BaseModel):
     success: bool
     id: UUID
@@ -172,3 +172,8 @@ class TaskListResponse(BaseModel):
     success: bool
     task_id: UUID
     status: TaskStatus
+
+
+class LeaderboardRow(BaseModel):
+    hotkey: str
+    stats: AllNodeStats
