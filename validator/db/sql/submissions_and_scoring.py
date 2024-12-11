@@ -205,7 +205,7 @@ async def get_aggregate_scores_since(start_time: datetime, psql_db: PSQLDB) -> L
             FROM {cst.TASKS_TABLE} t
             LEFT JOIN {cst.TASK_NODES_TABLE} tn ON t.{cst.TASK_ID} = tn.{cst.TASK_ID}
             WHERE t.{cst.STATUS} = 'success'
-            AND t.created_timestamp >= $1
+            AND t.{cst.CREATED_AT} >= $1
             AND tn.{cst.NETUID} = $2
             AND EXISTS (
                 SELECT 1
@@ -215,7 +215,7 @@ async def get_aggregate_scores_since(start_time: datetime, psql_db: PSQLDB) -> L
                 AND tn2.{cst.NETUID} = $2
             )
             GROUP BY t.{cst.TASK_ID}
-            ORDER BY t.created_timestamp DESC
+            ORDER BY t.{cst.CREATED_AT} DESC
         """
         rows = await connection.fetch(query, start_time, NETUID)
 
@@ -261,7 +261,7 @@ async def get_node_quality_metrics(hotkey: str, interval: str, psql_db: PSQLDB) 
             WHERE tn.{cst.HOTKEY} = $1
             AND tn.{cst.NETUID} = $2
             AND tn.{cst.QUALITY_SCORE} IS NOT NULL
-            AND t.created_timestamp >= CASE
+            AND t.{cst.CREATED_AT} >= CASE
                 WHEN $3 = 'all' THEN '1970-01-01'::TIMESTAMP
                 ELSE NOW() - $3::INTERVAL
             END
@@ -303,7 +303,7 @@ async def get_node_workload_metrics(hotkey: str, interval: str, psql_db: PSQLDB)
             WHERE tn.{cst.HOTKEY} = $1
             AND tn.{cst.QUALITY_SCORE} IS NOT NULL
             AND tn.{cst.NETUID} = $2
-            AND t.created_timestamp >= CASE
+            AND t.{cst.CREATED_AT} >= CASE
                 WHEN $3 = 'all' THEN '1970-01-01'::TIMESTAMP
                 ELSE NOW() - $3::INTERVAL
             END
@@ -324,7 +324,7 @@ async def get_node_model_metrics(hotkey: str, interval: str, psql_db: PSQLDB) ->
             JOIN {cst.TASKS_TABLE} t ON tn.{cst.TASK_ID} = t.{cst.TASK_ID}
             WHERE tn.{cst.HOTKEY} = $1
             AND tn.{cst.NETUID} = $2
-            AND t.created_timestamp >= CASE
+            AND t.{cst.CREATED_AT} >= CASE
                 WHEN $3 = 'all' THEN '1970-01-01'::TIMESTAMP
                 ELSE NOW() - $3::INTERVAL
             END
@@ -346,7 +346,7 @@ async def get_node_model_metrics(hotkey: str, interval: str, psql_db: PSQLDB) ->
         JOIN {cst.TASKS_TABLE} t ON tn.{cst.TASK_ID} = t.{cst.TASK_ID}
         WHERE tn.{cst.HOTKEY} = $1
         AND tn.{cst.NETUID} = $2
-        AND t.created_timestamp >= CASE
+        AND t.{cst.CREATED_AT} >= CASE
             WHEN $3 = 'all' THEN '1970-01-01'::TIMESTAMP
             ELSE NOW() - $3::INTERVAL
         END
