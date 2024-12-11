@@ -54,36 +54,36 @@ class ModelData(BaseModel):
     library_name: str | None = None
     created_at: str | None = None
     config: dict
-    parameter_count: None | int = None
+    parameter_count: int | None = None
 
 
 class Task(BaseModel):
-    is_organic: 2bool
-    task_id: Optional[UUI2] = None
+    is_organic: bool
+    task_id: UUID | None = None
     model_id: str
     ds_id: str
-    input: Optional[str] = None
+    input: str | None = None
     status: str
-    system: Optional[str] = None
-    instruction: Optional[str] = None
-    output: Optional[str] = None
-    format: Optional[str] = None
-    no_input_format: Optional[str] = None
-    test_data: Optional[str] = None
-    synthetic_data: Optional[str] = None
-    training_data: Optional[str] = None
-    assigned_miners: Optional[list[int]] = None
-    miner_scores: Optional[list[float]] = None
-    created_timestamp: Optional[datetime] = None
-    delay_timestamp: Optional[datetime] = None
-    delay_times: Optional[int] = 0
-    updated_timestamp: Optional[datetime] = None
-    started_timestamp: Optional[datetime] = None
-    end_timestamp: Optional[datetime] = None
-    completed_timestamp: Optional[datetime] = None
+    system: str | None = None
+    instruction: str | None = None
+    output: str | None = None
+    format: str | None = None
+    no_input_format: str | None = None
+    test_data: str | None = None
+    synthetic_data: str | None = None
+    training_data: str | None = None
+    assigned_miners: list[int] | None = None
+    miner_scores: list[float] | None = None
+    created_timestamp: datetime | None = None
+    delay_timestamp: datetime | None = None
+    delay_times: int | None = 0
+    updated_timestamp: datetime | None = None
+    started_timestamp: datetime | None = None
+    end_timestamp: datetime | None = None
+    completed_timestamp: datetime | None = None
     hours_to_complete: int
-    best_submission_repo: Optional[str] = None
-    user_id: Optional[str] = None
+    best_submission_repo: str | None = None
+    user_id: str | None = None
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}
@@ -110,10 +110,10 @@ class TaskResults(BaseModel):
 
 class NodeAggregationResult(BaseModel):
     task_work_scores: list[float] = Field(default_factory=list)
-    average_raw_score: Optional[float] = Field(default=0.0)
+    average_raw_score: float | None = Field(default=0.0)
     summed_adjusted_task_scores: float = Field(default=0.0)
-    quality_score: Optional[float] = Field(default=0.0)
-    emission: Optional[float] = Field(default=0.0)
+    quality_score: float | None = Field(default=0.0)
+    emission: float | None = Field(default=0.0)
     task_raw_scores: list[float] = Field(default_factory=list)
     hotkey: str
 
@@ -128,8 +128,8 @@ class Submission(BaseModel):
     task_id: UUID
     hotkey: str
     repo: str
-    created_on: Optional[datetime]
-    updated_on: Optional[datetime]
+    created_on: datetime | None = None
+    updated_on: datetime | None = None
 
 
 class MinerResults(BaseModel):
@@ -193,7 +193,7 @@ class DatasetFiles(BaseModel):
     temp_path: Path | None = None
 
 
-tclass DatasetJsons(BaseModel):
+class DatasetJsons(BaseModel):
     train_data: list[Any]
     test_data: list[Any]
     synthetic_data: list[Any] = Field(default_factory=list)
