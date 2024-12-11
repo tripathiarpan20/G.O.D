@@ -16,8 +16,8 @@ from core.models.payload_models import NewTaskResponse
 from core.models.payload_models import TaskMinerResult
 from core.models.payload_models import TaskResultResponse
 from core.models.payload_models import TaskStatusResponse
-from core.models.payload_models import WinningSubmission
 from core.models.utility_models import TaskStatus
+from core.models.utility_models import WinningSubmission
 from validator.core.config import Config
 from validator.core.dependencies import get_api_key
 from validator.core.dependencies import get_config

@@ -42,6 +42,15 @@ class TaskStatus(str, Enum):
     PREP_TASK_FAILURE = "prep_task_failure"
     NODE_TRAINING_FAILURE = "node_training_failure"
 
+class WinningSubmission(BaseModel):
+    hotkey: str
+    score: float
+    model_repo: str
+
+    # Turn off protected namespace for model
+    model_config = {"protected_namespaces": ()}
+
+
 
 class CustomDatasetType(BaseModel):
     system_prompt: str | None = ""

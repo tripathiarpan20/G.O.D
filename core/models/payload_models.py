@@ -9,6 +9,7 @@ from core.models.utility_models import DatasetType
 from core.models.utility_models import FileFormat
 from core.models.utility_models import JobStatus
 from core.models.utility_models import TaskStatus
+from core.models.utility_models import WinningSubmission
 
 
 logger = get_logger(__name__)
@@ -127,15 +128,6 @@ class NewTaskResponse(BaseModel):
 
 class GetTasksRequest(BaseModel):
     fingerprint: str
-
-
-class WinningSubmission(BaseModel):
-    hotkey: str
-    score: float
-    model_repo: str
-
-    # Turn off protected namespace for model
-    model_config = {"protected_namespaces": ()}
 
 
 class MinerTaskResult(BaseModel):
