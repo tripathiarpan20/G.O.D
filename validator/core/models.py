@@ -35,11 +35,11 @@ class DatasetData(BaseModel):
     gated: bool
     last_modified: str
     likes: int
-    trending_score: Optional[int] = None
+    trending_score: int | None = None
     private: bool
     downloads: int
     created_at: str
-    description: Optional[str] = None
+    description: str | None = None
     sha: str
 
 
@@ -54,12 +54,12 @@ class ModelData(BaseModel):
     library_name: str | None = None
     created_at: str | None = None
     config: dict
-    parameter_count: Optional[int] = None
+    parameter_count: None | int = None
 
 
 class Task(BaseModel):
-    is_organic: bool
-    task_id: Optional[UUID] = None
+    is_organic: 2bool
+    task_id: Optional[UUI2] = None
     model_id: str
     ds_id: str
     input: Optional[str] = None
@@ -124,7 +124,7 @@ class NodeAggregationResult(BaseModel):
 
 class Submission(BaseModel):
     submission_id: UUID = Field(default_factory=uuid4)
-    score: Optional[float] = None
+    score: float | None = None
     task_id: UUID
     hotkey: str
     repo: str
@@ -193,7 +193,7 @@ class DatasetFiles(BaseModel):
     temp_path: Path | None = None
 
 
-class DatasetJsons(BaseModel):
+tclass DatasetJsons(BaseModel):
     train_data: list[Any]
     test_data: list[Any]
     synthetic_data: list[Any] = Field(default_factory=list)
