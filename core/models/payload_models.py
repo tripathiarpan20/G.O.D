@@ -134,7 +134,6 @@ class GetTasksRequest(BaseModel):
 
 
 class TaskResultResponse(BaseModel):
-    success: bool
     id: UUID
     miner_results: list[MinerTaskResult] | None
 
