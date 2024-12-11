@@ -103,27 +103,30 @@ class SubmissionResponse(BaseModel):
 
 
 class NewTaskRequest(BaseModel):
-    model_repo: str
-    ds_repo: str
-    instruction_col: str
-    input_col: str | None = None
-    hours_to_complete: int
-    system_col: str | None = None
-    output_col: str | None = None
-    format_col: str | None = None
-    no_input_format_col: str | None = None
+    instruction_col: str = Field(..., description="The column name for the instruction", examples=["instruction"])
+    input_col: str | None = Field(None, description="The column name for the input", examples=["input"])
+    output_col: str | None = Field(None, description="The column name for the output", examples=["output"])
+    system_col: str | None = Field(None, description="The column name for the system (prompt)", examples=["system"])
+
+    ds_repo: str = Field(..., description="The repository for the dataset", examples=["HuggingFaceFW/fineweb-2"])
+    model_repo: str = Field(..., description="The repository for the model", examples=["Qwen/Qwen2.5-Coder-32B-Instruct"])
+
+    hours_to_complete: int = Field(..., description="The number of hours to complete the task", examples=[1])
+
+    format_col: str | None = None  # NOTE: What is this?
+    no_input_format_col: str | None = None  # NOTE: What is this?
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}
 
 
+class NewTaskResponse(BaseModel):
+    success: bool = Field(..., description="Whether the task was created successfully")
+    task_id: UUID | None = Field(..., description="The ID of the task")
+
+
 class GetTasksRequest(BaseModel):
     fingerprint: str
-
-
-class NewTaskResponse(BaseModel):
-    success: bool
-    task_id: UUID | None = None
 
 
 class WinningSubmission(BaseModel):
