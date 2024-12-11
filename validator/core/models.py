@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from typing import Optional
+
 from uuid import UUID
 from uuid import uuid4
 
@@ -11,12 +11,12 @@ from pydantic import Field
 
 
 class TokenizerConfig(BaseModel):
-    bos_token: Optional[str] = None
-    eos_token: Optional[str] = None
-    pad_token: Optional[str] = None
-    unk_token: Optional[str] = None
-    chat_template: Optional[str] = None
-    use_default_system_prompt: Optional[bool] = None
+    bos_token: str | None = None
+    eos_token: str | None = None
+    pad_token: str | None = None
+    unk_token: str | None = None
+    chat_template: str | None = None
+    use_default_system_prompt: bool | None = None
 
 
 class ModelConfig(BaseModel):
@@ -45,15 +45,15 @@ class DatasetData(BaseModel):
 
 class ModelData(BaseModel):
     model_id: str
-    downloads: int
-    likes: int
-    private: Optional[bool]
-    trending_score: int
-    tags: list[str]
-    pipeline_tag: str
-    library_name: str
-    created_at: str
-    config: ModelConfig
+    downloads: int | None = None
+    likes: int | None = None
+    private: bool | None = None
+    trending_score: int | None = None
+    tags: list[str] | None = None
+    pipeline_tag: str | None = None
+    library_name: str | None = None
+    created_at: str | None = None
+    config: dict
     parameter_count: Optional[int] = None
 
 
@@ -94,7 +94,7 @@ class PeriodScore(BaseModel):
     summed_task_score: float
     average_score: float
     hotkey: str
-    normalised_score: Optional[float] = 0.0
+    normalised_score: float | None = 0.0
 
 
 class TaskNode(BaseModel):
@@ -137,8 +137,8 @@ class MinerResults(BaseModel):
     test_loss: float
     synth_loss: float
     is_finetune: bool
-    score: Optional[float] = 0.0
-    submission: Optional[Submission] = None
+    score: float | None = 0.0
+    submission: Submission | None = None
 
 
 class QualityMetrics(BaseModel):
@@ -183,14 +183,14 @@ class LeaderboardRow(BaseModel):
 
 class DatasetUrls(BaseModel):
     test_url: str
-    synthetic_url: Optional[str] = None
+    synthetic_url: str | None = None
     train_url: str
 
 
 class DatasetFiles(BaseModel):
     prefix: str
     data: str
-    temp_path: Optional[Path] = None
+    temp_path: Path | None = None
 
 
 class DatasetJsons(BaseModel):
