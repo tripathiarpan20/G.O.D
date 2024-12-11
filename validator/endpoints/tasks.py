@@ -6,7 +6,6 @@ from uuid import UUID
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
-from fastapi import Query
 from fastapi import Response
 from fiber.logging_utils import get_logger
 
@@ -104,8 +103,8 @@ async def get_node_results(
 
 async def get_all_task_details(
     config: Config = Depends(get_config),
-    limit: int = Query(100, description="The number of tasks to return"),
-    page: int = Query(1, description="The page number to return"),
+    limit: int = 100,
+    page: int = 1,
 ) -> List[TaskDetails]:
     tasks = await task_sql.get_tasks(config.psql_db, limit, page)
 
