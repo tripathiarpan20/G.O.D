@@ -35,7 +35,7 @@ async def delete_task(
     task_id: UUID,
     user_id: str = Depends(get_api_key),
     config: Config = Depends(get_config),
-) -> NewTaskResponse:
+) -> Response:
     task = await task_sql.get_task(task_id, config.psql_db)
 
     if not task:
@@ -48,7 +48,7 @@ async def delete_task(
     return Response(success=True)
 
 
-async def get_tasks(
+async def get_all_tasks(
     config: Config = Depends(get_config),
 ) -> List[TaskStatusResponse]:
     tasks_with_miners = await task_sql.get_tasks_with_miners(config.psql_db)
@@ -220,12 +220,11 @@ async def get_leaderboard(
 
 
 def factory_router() -> APIRouter:
-    router = APIRouter()
+    router = APIRouter(tags=["Gradients On Demand"])
 
     router.add_api_route(
         "/v1/tasks/create",
         create_task,
-        tags=["Training"],
         methods=["POST"],
         dependencies=[Depends(get_api_key)],
     )
@@ -233,7 +232,6 @@ def factory_router() -> APIRouter:
     router.add_api_route(
         "/v1/tasks/{task_id}",
         get_task_status,
-        tags=["Training"],
         methods=["GET"],
         dependencies=[Depends(get_api_key)],
     )
@@ -241,7 +239,6 @@ def factory_router() -> APIRouter:
     router.add_api_route(
         "/v1/tasks/delete/{task_id}",
         delete_task,
-        tags=["Training"],
         methods=["DELETE"],
         dependencies=[Depends(get_api_key)],
     )
@@ -249,7 +246,6 @@ def factory_router() -> APIRouter:
     router.add_api_route(
         "/v1/tasks/task_results/{task_id}",
         get_task_results,
-        tags=["Training"],
         methods=["GET"],
         dependencies=[Depends(get_api_key)],
     )
@@ -257,15 +253,13 @@ def factory_router() -> APIRouter:
     router.add_api_route(
         "/v1/tasks/node_results/{hotkey}",
         get_node_results,
-        tags=["Training"],
         methods=["GET"],
         dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
         "/v1/tasks",
-        get_tasks,
-        tags=["Training"],
+        get_all_tasks,
         methods=["GET"],
         dependencies=[Depends(get_api_key)],
     )
@@ -273,7 +267,6 @@ def factory_router() -> APIRouter:
     router.add_api_route(
         "/v1/leaderboard",
         get_leaderboard,
-        tags=["Training"],
         methods=["GET"],
         dependencies=[Depends(get_api_key)],
     )
