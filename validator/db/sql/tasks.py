@@ -1,4 +1,3 @@
-import json
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -60,56 +59,22 @@ async def get_nodes_assigned_to_task(task_id: str, psql_db: PSQLDB) -> List[Node
         return [Node(**dict(row)) for row in rows]
 
 
-async def get_task(task_id: UUID, psql_db: PSQLDB) -> Optional[Task]:
-    """Get a task by ID"""
-    async with await psql_db.connection() as connection:
-        connection: Connection
-        query = f"""
-            SELECT * FROM {cst.TASKS_TABLE} WHERE {cst.TASK_ID} = $1
-        """
-        row = await connection.fetchrow(query, task_id)
-        if row:
-            return Task(**dict(row))
-        return None
-
-
 async def get_tasks_with_status(status: str, psql_db: PSQLDB, include_not_ready_tasks=False) -> List[Task]:
     """Get all tasks with a specific status and delay_timestamp before current time if even_not_ready is False"""
+
+    delay_timestamp_clause = (
+        "" if include_not_ready_tasks else f"AND ({cst.DELAY_TIMESTAMP} IS NULL OR {cst.DELAY_TIMESTAMP} <= NOW())"
+    )
+
     async with await psql_db.connection() as connection:
         connection: Connection
         query = f"""
             SELECT * FROM {cst.TASKS_TABLE}
             WHERE {cst.STATUS} = $1
-            {'' if include_not_ready_tasks else f"AND ({cst.DELAY_TIMESTAMP} IS NULL OR {cst.DELAY_TIMESTAMP} <= NOW())"}
+            {delay_timestamp_clause}
         """
         rows = await connection.fetch(query, status)
         return [Task(**dict(row)) for row in rows]
-
-
-async def get_tasks_with_miners(psql_db: PSQLDB, limit: int, page: int) -> List[Dict]:
-    """Get all tasks for a user with their assigned miners"""
-    async with await psql_db.connection() as connection:
-        connection: Connection
-        query = f"""
-            SELECT {cst.TASKS_TABLE}.*, json_agg(
-            json_build_object(
-                '{cst.HOTKEY}', {cst.NODES_TABLE}.{cst.HOTKEY},
-                '{cst.TRUST}', {cst.NODES_TABLE}.{cst.TRUST}
-            )) AS miners
-            FROM {cst.TASKS_TABLE}
-            LEFT JOIN {cst.TASK_NODES_TABLE} ON {cst.TASKS_TABLE}.{cst.TASK_ID} = {cst.TASK_NODES_TABLE}.{cst.TASK_ID}
-            LEFT JOIN {cst.NODES_TABLE} ON
-                {cst.TASK_NODES_TABLE}.{cst.HOTKEY} = {cst.NODES_TABLE}.{cst.HOTKEY} AND
-                {cst.NODES_TABLE}.{cst.NETUID} = $1
-            GROUP BY {cst.TASKS_TABLE}.{cst.TASK_ID}
-            OFFSET $2
-            LIMIT $3
-        """
-        rows = await connection.fetch(query, NETUID, (page - 1) * limit, limit)
-        return [
-            {**dict(row), "miners": json.loads(row["miners"]) if isinstance(row["miners"], str) else row["miners"]}
-            for row in rows
-        ]
 
 
 async def assign_node_to_task(task_id: str, node: Node, psql_db: PSQLDB) -> None:
@@ -272,19 +237,93 @@ async def get_miners_for_task(task_id: UUID, psql_db: PSQLDB) -> List[Node]:
         return [Node(**dict(row)) for row in rows]
 
 
+async def get_task(task_id: UUID, psql_db: PSQLDB) -> Optional[Task]:
+    """Get a task by ID"""
+    async with await psql_db.connection() as connection:
+        connection: Connection
+        query = f"""
+            SELECT * FROM {cst.TASKS_TABLE} WHERE {cst.TASK_ID} = $1
+        """
+        row = await connection.fetchrow(query, task_id)
+        if row:
+            return Task(**dict(row))
+        return None
+
+
 async def get_winning_submissions_for_task(task_id: UUID, psql_db: PSQLDB) -> List[Dict]:
     """Retrieve the winning submission for a task based on the highest quality score in task_nodes."""
     async with await psql_db.connection() as connection:
         query = f"""
-            SELECT s.*, tn.quality_score
-            FROM {cst.SUBMISSIONS_TABLE} s
-            JOIN {cst.TASK_NODES_TABLE} tn
-            ON s.task_id = tn.task_id
-            AND s.hotkey = tn.hotkey
-            AND s.netuid = tn.netuid
-            WHERE s.task_id = $1
-            ORDER BY tn.quality_score DESC
+            SELECT submissions.repo
+            FROM {cst.SUBMISSIONS_TABLE} submissions
+            JOIN {cst.TASK_NODES_TABLE} task_nodes
+            ON submissions.task_id = task_nodes.task_id
+            AND submissions.hotkey = task_nodes.hotkey
+            AND submissions.netuid = task_nodes.netuid
+            WHERE submissions.task_id = $1
+            ORDER BY task_nodes.quality_score DESC
             LIMIT 1
         """
         rows = await connection.fetch(query, task_id)
         return [dict(row) for row in rows]
+
+
+async def get_task_by_id(task_id: UUID, psql_db: PSQLDB) -> Task:
+    """Get a task by ID along with its winning submissions"""
+    async with await psql_db.connection() as connection:
+        connection: Connection
+        query = f"""
+            WITH victorious_repo AS (
+                SELECT submissions.task_id, submissions.repo
+                FROM {cst.SUBMISSIONS_TABLE} submissions
+                JOIN {cst.TASK_NODES_TABLE} task_nodes
+                ON submissions.task_id = task_nodes.task_id
+                AND submissions.hotkey = task_nodes.hotkey
+                AND submissions.netuid = task_nodes.netuid
+                WHERE submissions.task_id = $1
+                AND task_nodes.quality_score IS NOT NULL
+                ORDER BY task_nodes.quality_score DESC
+                LIMIT 1
+            )
+            SELECT
+                tasks.*,
+                victorious_repo.repo as trained_model_repository
+            FROM {cst.TASKS_TABLE} tasks
+            LEFT JOIN victorious_repo ON tasks.task_id = victorious_repo.task_id
+            WHERE tasks.{cst.TASK_ID} = $1
+        """
+        row = await connection.fetchrow(query, task_id)
+        if not row:
+            return None
+
+        return Task(**dict(row))
+
+
+async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[Task]:
+    async with await psql_db.connection() as connection:
+        connection: Connection
+        query = f"""
+            WITH victorious_repo AS (
+                SELECT submissions.task_id, submissions.repo
+                FROM {cst.SUBMISSIONS_TABLE} submissions
+                JOIN {cst.TASK_NODES_TABLE} task_nodes
+                ON submissions.task_id = task_nodes.task_id
+                AND submissions.hotkey = task_nodes.hotkey
+                AND submissions.netuid = task_nodes.netuid
+                WHERE submissions.task_id = $1
+                AND task_nodes.quality_score IS NOT NULL
+                ORDER BY task_nodes.quality_score DESC
+                LIMIT 1
+            )
+            SELECT
+                tasks.*,
+                victorious_repo.repo as trained_model_repository
+            FROM {cst.TASKS_TABLE} tasks
+            LEFT JOIN victorious_repo ON tasks.task_id = victorious_repo.task_id
+            ORDER BY tasks.created_timestamp DESC
+            LIMIT $1 OFFSET $2
+        """
+
+
+        rows = await connection.fetch(query, limit, offset)
+        return [Task(**dict(row)) for row in rows]

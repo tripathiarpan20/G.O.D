@@ -205,14 +205,14 @@ async def assign_miners(task: Task, config: Config):
 
 def attempt_delay_task(task: Task):
     assert (
-        task.created_timestamp is not None and task.delay_timestamp is not None and task.delay_times is not None
+        task.created_at is not None and task.next_delay_at is not None and task.times_delayed is not None
     ), "We wanted to check delay vs created timestamps but they are missing"
 
     if (
-        task.delay_times >= cst.MAX_DELAY_TIMES or not task.is_organic
+        task.times_delayed >= cst.MAX_DELAY_TIMES or not task.is_organic
     ):
         if task.is_organic:
-            logger.info(f"We have already delayed {task.delay_times}")
+            logger.info(f"We have already delayed {task.times_delayed}")
         else:
             logger.info(
                 "This is a synth task - no need to add a delay when the network is busy")
@@ -223,10 +223,10 @@ def attempt_delay_task(task: Task):
             f"Adding in a delay of {cst.TASK_TIME_DELAY} minutes for now since no miners accepted the task"
         )
 
-        task.delay_timestamp = task.delay_timestamp + \
+        task.next_delay_at = task.next_delay_at + \
             datetime.timedelta(minutes=cst.TASK_TIME_DELAY)
         task.status = TaskStatus.DELAYED
-        task.delay_times += 1
+        task.times_delayed += 1
     return task
 
 
@@ -269,8 +269,8 @@ async def _process_selected_tasks(config: Config):
 
 
 async def _start_training_task(task: Task, config: Config) -> None:
-    task.started_timestamp = datetime.datetime.now()
-    task.end_timestamp = task.started_timestamp + datetime.timedelta(
+    task.started_at = datetime.datetime.now()
+    task.termination_at = task.started_at + datetime.timedelta(
         hours=task.hours_to_complete
     )
     assigned_miners = await tasks_sql.get_nodes_assigned_to_task(

@@ -81,7 +81,7 @@ async def create_a_new_task(
         field_output=columns.output_col,
         status=TaskStatus.PENDING,
         is_organic=False,
-        end_timestamp=end_timestamp,
+        termination_at=end_timestamp,
         hours_to_complete=number_of_hours,
     )
     logger.info(f"New task created and added to the queue {task}")

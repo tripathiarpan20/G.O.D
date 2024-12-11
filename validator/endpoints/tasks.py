@@ -14,12 +14,11 @@ from core.models.payload_models import AllOfNodeResults
 from core.models.payload_models import LeaderboardRow
 from core.models.payload_models import NewTaskRequest
 from core.models.payload_models import NewTaskResponse
+from core.models.payload_models import TaskDetails
 from core.models.payload_models import TaskResultResponse
-from core.models.payload_models import TaskStatusResponse
 from core.models.utility_models import MinerTaskResult
 from core.models.utility_models import TaskMinerResult
 from core.models.utility_models import TaskStatus
-from core.models.utility_models import WinningSubmission
 from validator.core.config import Config
 from validator.core.dependencies import get_api_key
 from validator.core.dependencies import get_config
@@ -49,52 +48,6 @@ async def delete_task(
     return Response(success=True)
 
 
-async def get_all_tasks(
-    config: Config = Depends(get_config),
-    limit: int = Query(100, description="The number of tasks to return"),
-    page: int = Query(1, description="The page number to return"),
-) -> List[TaskStatusResponse]:
-    tasks_with_miners = await task_sql.get_tasks_with_miners(config.psql_db, limit, page)
-    task_status_responses = []
-
-    for task in tasks_with_miners:
-        miners = await task_sql.get_miners_for_task(task["task_id"], config.psql_db)
-        winning_submission_data = await task_sql.get_winning_submissions_for_task(task["task_id"], config.psql_db)
-        winning_submission = None
-        if winning_submission_data:
-            winning_submission_data = winning_submission_data[0]
-            winning_submission = WinningSubmission(
-                hotkey=winning_submission_data["hotkey"],
-                score=winning_submission_data["quality_score"],
-                model_repo=winning_submission_data["repo"],
-            )
-
-        task_status_responses.append(
-            TaskStatusResponse(
-                success=True,
-                id=task["task_id"],
-                status=task["status"],
-                model_repo=task.get("model_id"),
-                ds_repo=task.get("ds_id"),
-                input_col=task.get("input"),
-                system_col=task.get("system"),
-                instruction_col=task.get("instruction"),
-                output_col=task.get("output"),
-                format_col=task.get("format"),
-                no_input_format_col=task.get("no_input_format"),
-                miners=[{"hotkey": miner.hotkey, "trust": miner.trust} for miner in miners],
-                dataset=task.get("ds_id"),
-                started=str(task["started_timestamp"]),
-                end=str(task["end_timestamp"]),
-                created=str(task["created_timestamp"]),
-                hours_to_complete=task.get("hours_to_complete"),
-                winning_submission=winning_submission,
-            )
-        )
-
-    return task_status_responses
-
-
 async def create_task(
     request: NewTaskRequest,
     config: Config = Depends(get_config),
@@ -121,7 +74,7 @@ async def create_task(
         is_organic=True,
         no_input_format=request.no_input_format_col,
         status=TaskStatus.PENDING,
-        end_timestamp=end_timestamp,
+        termination_at=end_timestamp,
         hours_to_complete=request.hours_to_complete,
     )
 
@@ -131,20 +84,6 @@ async def create_task(
 
     logger.info(task.task_id)
     return NewTaskResponse(success=True, task_id=task.task_id)
-
-
-async def get_task_results(
-    task_id: UUID,
-    config: Config = Depends(get_config),
-    api_key: str = Depends(get_api_key),
-) -> TaskResultResponse:
-    try:
-        scores = await submissions_and_scoring_sql.get_all_quality_scores_for_task(task_id, config.psql_db)
-        miner_results = [MinerTaskResult(hotkey=hotkey, quality_score=scores[hotkey]) for hotkey in scores]
-    except Exception as e:
-        logger.info(e)
-        raise HTTPException(status_code=404, detail="Task not found.")
-    return TaskResultResponse(success=True, id=task_id, miner_results=miner_results)
 
 
 async def get_node_results(
@@ -163,21 +102,47 @@ async def get_node_results(
     return AllOfNodeResults(success=True, hotkey=hotkey, task_results=miner_results)
 
 
-async def get_task_status(
+async def get_all_task_details(
+    config: Config = Depends(get_config),
+    limit: int = Query(100, description="The number of tasks to return"),
+    page: int = Query(1, description="The page number to return"),
+) -> List[TaskDetails]:
+    tasks = await task_sql.get_tasks(config.psql_db, limit, page)
+
+    task_status_responses = [
+        TaskDetails(
+            id=task.task_id,
+            status=task.status,
+            base_model_repository=task.model_id,
+            ds_repo=task.ds_id,
+            field_input=task.field_input,
+            field_system=task.field_system,
+            field_instruction=task.field_instruction,
+            field_output=task.field_output,
+            format=task.format,
+            no_input_format=task.no_input_format,
+            system_format=task.system_format,
+            created_at=task.created_at,
+            started_at=task.started_at,
+            finished_at=task.termination_at,
+            hours_to_complete=task.hours_to_complete,
+            trained_model_repository=task.trained_model_repository,
+        )
+        for task in tasks
+    ]
+
+    return task_status_responses
+
+
+async def get_task_details(
     task_id: UUID,
     config: Config = Depends(get_config),
-) -> TaskStatusResponse:
-    task = await task_sql.get_task(task_id, config.psql_db)
+) -> TaskDetails:
+    task = await task_sql.get_task_by_id(task_id, config.psql_db)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found.")
 
-    winning_submission_data = await task_sql.get_winning_submissions_for_task(task_id, config.psql_db)
-    trained_model_repository = None
-    if winning_submission_data:
-        winning_submission_data = winning_submission_data[0]
-        trained_model_repository = winning_submission_data["repo"]
-
-    return TaskStatusResponse(
+    return TaskDetails(
         id=task_id,
         status=task.status,
         base_model_repository=task.model_id,
@@ -189,12 +154,25 @@ async def get_task_status(
         format=task.format,
         no_input_format=task.no_input_format,
         system_format=task.system_format,
-        started=str(task.started_timestamp),
-        end=str(task.end_timestamp),
-        created=str(task.created_timestamp),
+        created_at=task.created_at,
+        started_at=task.started_at,
+        finished_at=task.termination_at,
         hours_to_complete=task.hours_to_complete,
-        trained_model_repository=trained_model_repository,
+        trained_model_repository=task.trained_model_repository,
     )
+
+
+async def get_task_results(
+    task_id: UUID,
+    config: Config = Depends(get_config),
+) -> TaskResultResponse:
+    try:
+        scores = await submissions_and_scoring_sql.get_all_quality_scores_for_task(task_id, config.psql_db)
+        miner_results = [MinerTaskResult(hotkey=hotkey, quality_score=scores[hotkey]) for hotkey in scores]
+    except Exception as e:
+        logger.info(e)
+        raise HTTPException(status_code=404, detail="Task not found.")
+    return TaskResultResponse(success=True, id=task_id, miner_results=miner_results)
 
 
 async def get_leaderboard(
@@ -215,54 +193,47 @@ async def get_leaderboard(
 
 
 def factory_router() -> APIRouter:
-    router = APIRouter(tags=["Gradients On Demand"])
+    router = APIRouter(tags=["Gradients On Demand"], dependencies=[Depends(get_api_key)])
 
     router.add_api_route(
         "/v1/tasks/create",
         create_task,
         methods=["POST"],
-        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
         "/v1/tasks/{task_id}",
-        get_task_status,
+        get_task_details,
         methods=["GET"],
-        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
         "/v1/tasks/delete/{task_id}",
         delete_task,
         methods=["DELETE"],
-        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
         "/v1/tasks/task_results/{task_id}",
         get_task_results,
         methods=["GET"],
-        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
         "/v1/tasks/node_results/{hotkey}",
         get_node_results,
         methods=["GET"],
-        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
         "/v1/tasks",
-        get_all_tasks,
+        get_all_task_details,
         methods=["GET"],
-        dependencies=[Depends(get_api_key)],
     )
 
     router.add_api_route(
         "/v1/leaderboard",
         get_leaderboard,
         methods=["GET"],
-        dependencies=[Depends(get_api_key)],
     )
     return router

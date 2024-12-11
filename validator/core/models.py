@@ -16,27 +16,29 @@ class Task(BaseModel):
     model_id: str
     ds_id: str
     status: str
+    times_delayed: int = 0
+    hours_to_complete: int
     field_system: str | None = None
     field_instruction: str
     field_input: str | None = None
     field_output: str | None = None
     format: str | None = None
     no_input_format: str | None = None
-    system_format: str | None = None  # NOTE: Needs updating to be optional once we accept it
+    system_format: None = None  # NOTE: Needs updating to be optional once we accept it
     test_data: str | None = None
     synthetic_data: str | None = None
     training_data: str | None = None
     assigned_miners: list[int] | None = None
     miner_scores: list[float] | None = None
-    created_timestamp: datetime | None = None
-    delay_timestamp: datetime | None = None
-    delay_times: int = 0
-    updated_timestamp: datetime | None = None
-    started_timestamp: datetime | None = None
-    end_timestamp: datetime | None = None
-    completed_timestamp: datetime | None = None
-    hours_to_complete: int
-    best_submission_repo: str | None = None
+
+    created_at: datetime | None = None
+    next_delay_at: datetime | None = None
+    updated_at: datetime | None = None
+    started_at: datetime | None = None
+    termination_at: datetime | None = None
+    completed_at: datetime | None = None
+
+    trained_model_repository: str | None = None
     user_id: str | None = None
 
     # Turn off protected namespace for model

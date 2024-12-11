@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from fiber.logging_utils import get_logger
@@ -144,7 +145,8 @@ class AllOfNodeResults(BaseModel):
     task_results: list[TaskMinerResult] | None
 
 
-class TaskStatusResponse(BaseModel):
+
+class TaskDetails(BaseModel):
     id: UUID
     status: TaskStatus
     base_model_repository: str
@@ -164,9 +166,9 @@ class TaskStatusResponse(BaseModel):
     )
     system_format: None = Field(None, description="How to format the `system (prompt)`", examples=["{system}"])
 
-    started: str
-    end: str
-    created: str
+    started_at: datetime | None
+    finished_at: datetime | None
+    created_at: datetime
     hours_to_complete: int
     trained_model_repository: str | None
 

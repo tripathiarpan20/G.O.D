@@ -14,7 +14,7 @@ tasks:
     cmds:
       - ENV=DEV uvicorn miner.server:app --reload --host 0.0.0.0 --port 7999 --env-file .1.env --log-level debug
 
-  dev_setup:
+  setup:
     cmds:
       - docker compose --env-file .vali.env -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 
