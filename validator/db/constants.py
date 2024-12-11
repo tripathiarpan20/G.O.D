@@ -23,6 +23,8 @@ INCENTIVE = "incentive"
 LAST_UPDATED = "last_updated"
 PROTOCOL = "protocol"
 OUR_VALIDATOR = "our_validator"
+CREATED_TIMESTAMP = "created_timestamp"
+UPDATED_TIMESTAMP = "updated_timestamp"
 
 # Task Table Columns
 TASK_ID = "task_id"

@@ -116,7 +116,7 @@ async def get_vali_ss58_address(psql_db: PSQLDB) -> str | None:
 async def get_last_updated_time_for_nodes(connection: Connection) -> datetime.datetime | None:
     """Get last updated time for nodes in the current NETUID"""
     query = f"""
-        SELECT MAX({dcst.CREATED_AT})
+        SELECT MAX({dcst.CREATED_TIMESTAMP})
         FROM {dcst.NODES_TABLE}
         WHERE {dcst.NETUID} = $1
     """
