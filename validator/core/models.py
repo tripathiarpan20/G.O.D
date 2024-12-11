@@ -10,6 +10,53 @@ from pydantic import BaseModel
 from pydantic import Field
 
 
+class TokenizerConfig(BaseModel):
+    bos_token: Optional[str] = None
+    eos_token: Optional[str] = None
+    pad_token: Optional[str] = None
+    unk_token: Optional[str] = None
+    chat_template: Optional[str] = None
+    use_default_system_prompt: Optional[bool] = None
+
+
+class ModelConfig(BaseModel):
+    architectures: list[str]
+    model_type: str
+    tokenizer_config: TokenizerConfig
+
+
+class DatasetData(BaseModel):
+    dataset_id: str
+    sparse_columns: list[str]
+    non_sparse_columns: list[str]
+    tags: list[str]
+    author: str
+    disabled: bool
+    gated: bool
+    last_modified: str
+    likes: int
+    trending_score: Optional[int] = None
+    private: bool
+    downloads: int
+    created_at: str
+    description: Optional[str] = None
+    sha: str
+
+
+class ModelData(BaseModel):
+    model_id: str
+    downloads: int
+    likes: int
+    private: Optional[bool]
+    trending_score: int
+    tags: list[str]
+    pipeline_tag: str
+    library_name: str
+    created_at: str
+    config: ModelConfig
+    parameter_count: Optional[int] = None
+
+
 class Task(BaseModel):
     is_organic: bool
     task_id: Optional[UUID] = None

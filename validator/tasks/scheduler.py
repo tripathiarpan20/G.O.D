@@ -12,7 +12,9 @@ import validator.core.constants as csts
 from core.models.payload_models import DatasetRequest
 from core.models.utility_models import TaskStatus
 from validator.core.config import Config
+from validator.core.models import DatasetData
 from validator.core.models import Task
+from validator.core.models import ModelData
 from validator.db.sql.tasks import add_task
 from validator.db.sql.tasks import get_tasks_with_status
 from validator.utils.call_endpoint import call_content_service
@@ -22,30 +24,19 @@ logger = get_logger(name="task synth")
 
 
 async def _get_models(keypair: Keypair) -> AsyncGenerator[str, None]:
-    response = await call_content_service(csts.GET_RANDOM_MODELS_ENDPOINT, keypair)
-    if not isinstance(response, list):
-        raise TypeError(
-            "Expected a list of responses from GET_ALL_MODELS_ENDPOINT")
-    models: list[dict[str, Any]] = response
-
-    model_ids = [model[csts.GET_ALL_MODELS_ID]
-                 for model in models
-                 if csts.GET_ALL_MODELS_ID in model and model[csts.GET_ALL_MODELS_ID]]
-    random.shuffle(model_ids)
-    for model_id in model_ids:
-        yield model_id
+    response: list[dict[str, Any]] = await call_content_service(csts.GET_RANDOM_MODELS_ENDPOINT, keypair)
+    models = [ModelData(**model) for model in response]
+    random.shuffle(models)
+    for m in models:
+        yield m.model_id
 
 
 async def _get_datasets(keypair: Keypair) -> AsyncGenerator[str, None]:
-    response = await call_content_service(csts.GET_RANDOM_DATASETS_ENDPOINT, keypair)
-    if not isinstance(response, list):
-        raise TypeError(
-            "Expected a list of responses from GET_ALL_DATASETS_ENDPOINT")
-    datasets: list[dict[str, Any]] = response
-    dataset_ids = [ds.get(csts.GET_ALL_DATASETS_ID, "") for ds in datasets]
-    random.shuffle(dataset_ids)
-    for ds_id in dataset_ids:
-        yield ds_id
+    response: list[dict[str, Any]] = await call_content_service(csts.GET_RANDOM_DATASETS_ENDPOINT, keypair)
+    datasets = [DatasetData(**ds) for ds in response]
+    random.shuffle(datasets)
+    for ds in datasets:
+        yield ds.dataset_id
 
 
 async def _get_the_columns_for_dataset(dataset_id: str, keypair: Keypair) -> DatasetRequest:
