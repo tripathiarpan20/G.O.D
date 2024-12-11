@@ -30,6 +30,7 @@ from validator.utils.call_endpoint import process_non_stream_fiber_get
 from validator.utils.call_endpoint import process_non_stream_get
 from validator.utils.minio import async_minio_client
 
+
 logger = get_logger(__name__)
 
 
@@ -80,7 +81,6 @@ def calculate_node_quality_scores(
     assert node_aggregations, "Node aggregations dictionary cannot be empty"
 
     final_scores: list[PeriodScore] = []
-    min_score = float("inf")
 
     for hotkey, node_agg in node_aggregations.items():
         assert node_agg.task_raw_scores, f"No raw scores available for node {hotkey}"
@@ -279,10 +279,10 @@ def add_raw_scores_to_miner_results(miner_results: list[MinerResults]) -> list[M
 
 def _get_dataset_type(task: Task) -> CustomDatasetType:
     return CustomDatasetType(
-        field_system=task.system,
-        field_instruction=task.instruction,
-        field_input=task.input,
-        field_output=task.output,
+        field_system=task.field_system,
+        field_instruction=task.field_instruction,
+        field_input=task.field_input,
+        field_output=task.field_output,
         format=task.format,
         no_input_format=task.no_input_format,
     )

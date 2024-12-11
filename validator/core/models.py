@@ -12,31 +12,32 @@ from pydantic import Field
 
 class Task(BaseModel):
     is_organic: bool
-    task_id: Optional[UUID] = None
+    task_id: UUID | None = None
     model_id: str
     ds_id: str
-    input: Optional[str] = None
     status: str
-    system: Optional[str] = None
-    instruction: Optional[str] = None
-    output: Optional[str] = None
-    format: Optional[str] = None
-    no_input_format: Optional[str] = None
-    test_data: Optional[str] = None
-    synthetic_data: Optional[str] = None
-    training_data: Optional[str] = None
-    assigned_miners: Optional[list[int]] = None
-    miner_scores: Optional[list[float]] = None
-    created_timestamp: Optional[datetime] = None
-    delay_timestamp: Optional[datetime] = None
-    delay_times: Optional[int] = 0
-    updated_timestamp: Optional[datetime] = None
-    started_timestamp: Optional[datetime] = None
-    end_timestamp: Optional[datetime] = None
-    completed_timestamp: Optional[datetime] = None
+    field_system: str | None = None
+    field_instruction: str
+    field_input: str | None = None
+    field_output: str | None = None
+    format: str | None = None
+    no_input_format: str | None = None
+    system_format: str | None = None  # NOTE: Needs updating to be optional once we accept it
+    test_data: str | None = None
+    synthetic_data: str | None = None
+    training_data: str | None = None
+    assigned_miners: list[int] | None = None
+    miner_scores: list[float] | None = None
+    created_timestamp: datetime | None = None
+    delay_timestamp: datetime | None = None
+    delay_times: int = 0
+    updated_timestamp: datetime | None = None
+    started_timestamp: datetime | None = None
+    end_timestamp: datetime | None = None
+    completed_timestamp: datetime | None = None
     hours_to_complete: int
-    best_submission_repo: Optional[str] = None
-    user_id: Optional[str] = None
+    best_submission_repo: str | None = None
+    user_id: str | None = None
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}

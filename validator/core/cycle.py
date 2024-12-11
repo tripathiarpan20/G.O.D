@@ -41,7 +41,7 @@ async def _run_task_prep(task: Task, keypair: Keypair) -> Task:
     logger.info(f"The task coming into task prep is {task}")
     columns_to_sample = [
         i
-        for i in [task.system, task.instruction, task.input, task.output]
+        for i in [task.field_system, task.field_instruction, task.field_input, task.field_output]
         if i is not None
     ]
     test_data, synth_data, train_data = await prepare_task(
@@ -158,10 +158,10 @@ async def _let_miners_know_to_start_training(
     task: Task, nodes: list[Node], config: Config
 ):
     dataset_type = CustomDatasetType(
-        field_system=task.system,
-        field_input=task.input,
-        field_output=task.output,
-        field_instruction=task.instruction,
+        field_system=task.field_system,
+        field_input=task.field_input,
+        field_output=task.field_output,
+        field_instruction=task.field_instruction,
         format=task.format,
         no_input_format=task.no_input_format,
     )

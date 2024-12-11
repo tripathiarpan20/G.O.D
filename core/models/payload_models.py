@@ -156,11 +156,13 @@ class TaskStatusResponse(BaseModel):
     )
     field_input: str | None = Field(None, description="The column name for the `input`", examples=["input"])
     field_output: str | None = Field(None, description="The column name for the `output`", examples=["output"])
-    format: str | None = Field(None, description="The column name for the `format`", examples=["{instruction} {input}"])
-    no_input_format: str | None = Field(
+
+    # NOTE: ATM can not be defined by the user, but should be able to in the future
+    format: None = Field(None, description="The column name for the `format`", examples=["{instruction} {input}"])
+    no_input_format: None = Field(
         None, description="If the field_input is not provided, what format should we use? ", examples=["{instruction}"]
     )
-    system_format: str | None = Field(None, description="How to format the `system (prompt)`", examples=["{system}"])
+    system_format: None = Field(None, description="How to format the `system (prompt)`", examples=["{system}"])
 
     started: str
     end: str
