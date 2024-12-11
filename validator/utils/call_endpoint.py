@@ -250,7 +250,7 @@ async def sign_up_to_gradients(keypair: Keypair):
 
 
 async def sign_up_cron_job(keypair: Keypair, subnet_id: int) -> None:
-    if subnet_id != 56:
+    if subnet_id != NETUID:
         return
     # In case initial signup fails, we try again every 3 hours
     while True:
