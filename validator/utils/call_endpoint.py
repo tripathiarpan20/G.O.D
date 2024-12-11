@@ -262,7 +262,7 @@ async def sign_up_cron_job(keypair: Keypair):
 
 
 @retry_with_backoff
-async def call_content_service(endpoint: str, keypair: Keypair, params: dict = None) -> dict[str, Any]:
+async def call_content_service(endpoint: str, keypair: Keypair, params: dict = None) -> dict[str, Any] | list[dict[str, Any]]:
     """Make a signed request to the content service."""
     headers = _get_headers_for_signed_https_request(keypair)
 
@@ -273,6 +273,7 @@ async def call_content_service(endpoint: str, keypair: Keypair, params: dict = N
             params=params
         )
         if response.status_code != 200:
-            logger.error(f"Error in content service response: {response.content}")
+            logger.error(
+                f"Error in content service response: {response.content}")
             response.raise_for_status()
         return response.json()

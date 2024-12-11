@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from typing import Optional
+
 from uuid import UUID
 from uuid import uuid4
 
@@ -10,33 +10,80 @@ from pydantic import BaseModel
 from pydantic import Field
 
 
+class TokenizerConfig(BaseModel):
+    bos_token: str | None = None
+    eos_token: str | None = None
+    pad_token: str | None = None
+    unk_token: str | None = None
+    chat_template: str | None = None
+    use_default_system_prompt: bool | None = None
+
+
+class ModelConfig(BaseModel):
+    architectures: list[str]
+    model_type: str
+    tokenizer_config: TokenizerConfig
+
+
+class DatasetData(BaseModel):
+    dataset_id: str
+    sparse_columns: list[str] = Field(default_factory=list)
+    non_sparse_columns: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    author: str | None = None
+    disabled: bool = False
+    gated: bool = False
+    last_modified: str | None = None
+    likes: int = 0
+    trending_score: int | None = None
+    private: bool = False
+    downloads: int = 0
+    created_at: str | None = None
+    description: str | None = None
+    sha: str | None = None
+
+
+class ModelData(BaseModel):
+    model_id: str
+    downloads: int | None = None
+    likes: int | None = None
+    private: bool | None = None
+    trending_score: int | None = None
+    tags: list[str] | None = None
+    pipeline_tag: str | None = None
+    library_name: str | None = None
+    created_at: str | None = None
+    config: dict
+    parameter_count: int | None = None
+
+
 class Task(BaseModel):
     is_organic: bool
-    task_id: Optional[UUID] = None
+    task_id: UUID | None = None
     model_id: str
     ds_id: str
-    input: Optional[str] = None
+    input: str | None = None
     status: str
-    system: Optional[str] = None
-    instruction: Optional[str] = None
-    output: Optional[str] = None
-    format: Optional[str] = None
-    no_input_format: Optional[str] = None
-    test_data: Optional[str] = None
-    synthetic_data: Optional[str] = None
-    training_data: Optional[str] = None
-    assigned_miners: Optional[list[int]] = None
-    miner_scores: Optional[list[float]] = None
-    created_timestamp: Optional[datetime] = None
-    delay_timestamp: Optional[datetime] = None
-    delay_times: Optional[int] = 0
-    updated_timestamp: Optional[datetime] = None
-    started_timestamp: Optional[datetime] = None
-    end_timestamp: Optional[datetime] = None
-    completed_timestamp: Optional[datetime] = None
+    system: str | None = None
+    instruction: str | None = None
+    output: str | None = None
+    format: str | None = None
+    no_input_format: str | None = None
+    test_data: str | None = None
+    synthetic_data: str | None = None
+    training_data: str | None = None
+    assigned_miners: list[int] | None = None
+    miner_scores: list[float] | None = None
+    created_timestamp: datetime | None = None
+    delay_timestamp: datetime | None = None
+    delay_times: int | None = 0
+    updated_timestamp: datetime | None = None
+    started_timestamp: datetime | None = None
+    end_timestamp: datetime | None = None
+    completed_timestamp: datetime | None = None
     hours_to_complete: int
-    best_submission_repo: Optional[str] = None
-    user_id: Optional[str] = None
+    best_submission_repo: str | None = None
+    user_id: str | None = None
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}
@@ -47,7 +94,7 @@ class PeriodScore(BaseModel):
     summed_task_score: float
     average_score: float
     hotkey: str
-    normalised_score: Optional[float] = 0.0
+    normalised_score: float | None = 0.0
 
 
 class TaskNode(BaseModel):
@@ -63,10 +110,10 @@ class TaskResults(BaseModel):
 
 class NodeAggregationResult(BaseModel):
     task_work_scores: list[float] = Field(default_factory=list)
-    average_raw_score: Optional[float] = Field(default=0.0)
+    average_raw_score: float | None = Field(default=0.0)
     summed_adjusted_task_scores: float = Field(default=0.0)
-    quality_score: Optional[float] = Field(default=0.0)
-    emission: Optional[float] = Field(default=0.0)
+    quality_score: float | None = Field(default=0.0)
+    emission: float | None = Field(default=0.0)
     task_raw_scores: list[float] = Field(default_factory=list)
     hotkey: str
 
@@ -77,12 +124,12 @@ class NodeAggregationResult(BaseModel):
 
 class Submission(BaseModel):
     submission_id: UUID = Field(default_factory=uuid4)
-    score: Optional[float] = None
+    score: float | None = None
     task_id: UUID
     hotkey: str
     repo: str
-    created_on: Optional[datetime]
-    updated_on: Optional[datetime]
+    created_on: datetime | None = None
+    updated_on: datetime | None = None
 
 
 class MinerResults(BaseModel):
@@ -90,8 +137,8 @@ class MinerResults(BaseModel):
     test_loss: float
     synth_loss: float
     is_finetune: bool
-    score: Optional[float] = 0.0
-    submission: Optional[Submission] = None
+    score: float | None = 0.0
+    submission: Submission | None = None
 
 
 class QualityMetrics(BaseModel):
@@ -136,14 +183,14 @@ class LeaderboardRow(BaseModel):
 
 class DatasetUrls(BaseModel):
     test_url: str
-    synthetic_url: Optional[str] = None
+    synthetic_url: str | None = None
     train_url: str
 
 
 class DatasetFiles(BaseModel):
     prefix: str
     data: str
-    temp_path: Optional[Path] = None
+    temp_path: Path | None = None
 
 
 class DatasetJsons(BaseModel):
