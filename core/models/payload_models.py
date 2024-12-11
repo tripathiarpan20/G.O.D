@@ -11,7 +11,6 @@ from core.models.utility_models import JobStatus
 from core.models.utility_models import MinerTaskResult
 from core.models.utility_models import TaskMinerResult
 from core.models.utility_models import TaskStatus
-from core.models.utility_models import WinningSubmission
 from validator.core.models import AllNodeStats
 
 
@@ -149,8 +148,7 @@ class TaskStatusResponse(BaseModel):
     success: bool
     id: UUID
     status: TaskStatus
-    miners: list[dict] | None  # TODO: Improve with actual types
-    model_repo: str
+    base_model_repository: str
     ds_repo: str | None
     input_col: str | None
     system_col: str | None
@@ -162,7 +160,7 @@ class TaskStatusResponse(BaseModel):
     end: str
     created: str
     hours_to_complete: int
-    winning_submission: WinningSubmission | None = None
+    trained_model_repository: str | None
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}

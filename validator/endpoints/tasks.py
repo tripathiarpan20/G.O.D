@@ -171,24 +171,17 @@ async def get_task_status(
     if not task:
         raise HTTPException(status_code=404, detail="Task not found.")
 
-    miners = await task_sql.get_miners_for_task(task_id, config.psql_db)
-    logger.info(miners)
-
     winning_submission_data = await task_sql.get_winning_submissions_for_task(task_id, config.psql_db)
-    winning_submission = None
+    trained_model_repository = None
     if winning_submission_data:
         winning_submission_data = winning_submission_data[0]
-        winning_submission = WinningSubmission(
-            hotkey=winning_submission_data["hotkey"],
-            score=winning_submission_data["quality_score"],
-            model_repo=winning_submission_data["repo"],
-        )
+        trained_model_repository = winning_submission_data["repo"]
 
     return TaskStatusResponse(
         success=True,
         id=task_id,
         status=task.status,
-        model_repo=task.model_id,
+        base_model_repository=task.model_id,
         ds_repo=task.ds_id,
         input_col=task.input,
         system_col=task.system,
@@ -197,11 +190,10 @@ async def get_task_status(
         format_col=task.format,
         no_input_format_col=task.no_input_format,
         started=str(task.started_timestamp),
-        miners=[{"hotkey": miner.hotkey, "trust": miner.trust} for miner in miners],
         end=str(task.end_timestamp),
         created=str(task.created_timestamp),
         hours_to_complete=task.hours_to_complete,
-        winning_submission=winning_submission,
+        trained_model_repository=trained_model_repository,
     )
 
 

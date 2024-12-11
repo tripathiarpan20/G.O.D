@@ -37,7 +37,7 @@ async def add_task(task: Task, psql_db: PSQLDB) -> Task:
             task.format,
             task.no_input_format,
             task.user_id,
-            task.is_organic
+            task.is_organic,
         )
         return await get_task(task_id, psql_db)
 
@@ -107,8 +107,7 @@ async def get_tasks_with_miners(psql_db: PSQLDB, limit: int, page: int) -> List[
         """
         rows = await connection.fetch(query, NETUID, (page - 1) * limit, limit)
         return [
-            {**dict(row), "miners": json.loads(row["miners"])
-             if isinstance(row["miners"], str) else row["miners"]}
+            {**dict(row), "miners": json.loads(row["miners"]) if isinstance(row["miners"], str) else row["miners"]}
             for row in rows
         ]
 
@@ -139,8 +138,7 @@ async def update_task(updated_task: Task, psql_db: PSQLDB) -> Task:
         connection: Connection
         async with connection.transaction():
             if updates:
-                set_clause = ", ".join(
-                    [f"{column} = ${i+2}" for i, column in enumerate(updates.keys())])
+                set_clause = ", ".join([f"{column} = ${i+2}" for i, column in enumerate(updates.keys())])
                 values = list(updates.values())
                 query = f"""
                     UPDATE {cst.TASKS_TABLE}
