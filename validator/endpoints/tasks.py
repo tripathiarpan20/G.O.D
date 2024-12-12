@@ -85,7 +85,7 @@ async def create_task(
     task = await task_sql.add_task(task, config.psql_db)
 
     logger.info(task.task_id)
-    return NewTaskResponse(success=True, task_id=task.task_id)
+    return NewTaskResponse(success=True, task_id=task.task_id, created_at=task.created_at, account_id=task.account_id)
 
 
 async def get_node_results(

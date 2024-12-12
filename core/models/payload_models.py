@@ -122,7 +122,6 @@ class NewTaskRequest(BaseModel):
     format: None = None
     no_input_format: None = None
 
-
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}
 
@@ -130,6 +129,8 @@ class NewTaskRequest(BaseModel):
 class NewTaskResponse(BaseModel):
     success: bool = Field(..., description="Whether the task was created successfully")
     task_id: UUID | None = Field(..., description="The ID of the task")
+    created_at: datetime = Field(..., description="The creation time of the task")
+    account_id: UUID = Field(..., description="The account ID who owns the task")
 
 
 class GetTasksRequest(BaseModel):
