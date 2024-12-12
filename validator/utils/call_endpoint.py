@@ -268,7 +268,6 @@ async def call_content_service(endpoint: str, keypair: Keypair, params: dict = N
     async with httpx.AsyncClient(timeout=120) as client:
         response = await client.get(url=endpoint, headers=headers, params=params)
         if response.status_code != 200:
-            logger.error(
-                f"Error in content service response: {response.content}")
+            logger.error(f"Error in content service response. Status code: {response.status_code} and response: {response.text}")
             response.raise_for_status()
         return response.json()
