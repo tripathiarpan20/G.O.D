@@ -5,12 +5,16 @@ from uuid import UUID
 
 from asyncpg.connection import Connection
 from fiber.chain.models import Node
+from fiber.logging_utils import get_logger
 
 import validator.db.constants as cst
 from core.constants import NETUID
 from validator.core.models import RawTask
 from validator.core.models import Task
 from validator.db.database import PSQLDB
+
+
+logger = get_logger(__name__)
 
 
 async def add_task(task: RawTask, psql_db: PSQLDB) -> RawTask:
@@ -70,6 +74,7 @@ async def get_tasks_with_status(status: str, psql_db: PSQLDB, include_not_ready_
         "" if include_not_ready_tasks else f"AND ({cst.NEXT_DELAY_AT} IS NULL OR {cst.NEXT_DELAY_AT} <= NOW())"
     )
 
+    logger.info(f"We are getting tasks with status {status} and include_not_ready_tasks {include_not_ready_tasks}")
     async with await psql_db.connection() as connection:
         connection: Connection
         query = f"""
