@@ -2,12 +2,58 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
 from pydantic import BaseModel
 from pydantic import Field
+
+
+class TokenizerConfig(BaseModel):
+    bos_token: str | None = None
+    eos_token: str | None = None
+    pad_token: str | None = None
+    unk_token: str | None = None
+    chat_template: str | None = None
+    use_default_system_prompt: bool | None = None
+
+
+class ModelConfig(BaseModel):
+    architectures: list[str]
+    model_type: str
+    tokenizer_config: TokenizerConfig
+
+
+class DatasetData(BaseModel):
+    dataset_id: str
+    sparse_columns: list[str] = Field(default_factory=list)
+    non_sparse_columns: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    author: str | None = None
+    disabled: bool = False
+    gated: bool = False
+    last_modified: str | None = None
+    likes: int = 0
+    trending_score: int | None = None
+    private: bool = False
+    downloads: int = 0
+    created_at: str | None = None
+    description: str | None = None
+    sha: str | None = None
+
+
+class ModelData(BaseModel):
+    model_id: str
+    downloads: int | None = None
+    likes: int | None = None
+    private: bool | None = None
+    trending_score: int | None = None
+    tags: list[str] | None = None
+    pipeline_tag: str | None = None
+    library_name: str | None = None
+    created_at: str | None = None
+    config: dict
+    parameter_count: int | None = None
 
 
 class RawTask(BaseModel):
@@ -56,7 +102,7 @@ class PeriodScore(BaseModel):
     summed_task_score: float
     average_score: float
     hotkey: str
-    normalised_score: Optional[float] = 0.0
+    normalised_score: float | None = 0.0
 
 
 class TaskNode(BaseModel):
@@ -72,10 +118,10 @@ class TaskResults(BaseModel):
 
 class NodeAggregationResult(BaseModel):
     task_work_scores: list[float] = Field(default_factory=list)
-    average_raw_score: Optional[float] = Field(default=0.0)
+    average_raw_score: float | None = Field(default=0.0)
     summed_adjusted_task_scores: float = Field(default=0.0)
-    quality_score: Optional[float] = Field(default=0.0)
-    emission: Optional[float] = Field(default=0.0)
+    quality_score: float | None = Field(default=0.0)
+    emission: float | None = Field(default=0.0)
     task_raw_scores: list[float] = Field(default_factory=list)
     hotkey: str
 
@@ -86,12 +132,12 @@ class NodeAggregationResult(BaseModel):
 
 class Submission(BaseModel):
     submission_id: UUID = Field(default_factory=uuid4)
-    score: Optional[float] = None
+    score: float | None = None
     task_id: UUID
     hotkey: str
     repo: str
-    created_on: Optional[datetime]
-    updated_on: Optional[datetime]
+    created_on: datetime | None = None
+    updated_on: datetime | None = None
 
 
 class MinerResults(BaseModel):
@@ -99,8 +145,8 @@ class MinerResults(BaseModel):
     test_loss: float
     synth_loss: float
     is_finetune: bool
-    score: Optional[float] = 0.0
-    submission: Optional[Submission] = None
+    score: float | None = 0.0
+    submission: Submission | None = None
 
 
 class QualityMetrics(BaseModel):
@@ -140,14 +186,14 @@ class AllNodeStats(BaseModel):
 
 class DatasetUrls(BaseModel):
     test_url: str
-    synthetic_url: Optional[str] = None
+    synthetic_url: str | None = None
     train_url: str
 
 
 class DatasetFiles(BaseModel):
     prefix: str
     data: str
-    temp_path: Optional[Path] = None
+    temp_path: Path | None = None
 
 
 class DatasetJsons(BaseModel):
