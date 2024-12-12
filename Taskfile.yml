@@ -53,7 +53,7 @@ tasks:
 
   postgres:
     cmds:
-      - docker compose  -it  --env-file .vali.env postgresql psql -U$POSTGRES_USER $POSTGRES_DB
+      - docker compose run --env-file .vali.env postgresql psql -U$POSTGRES_USER $POSTGRES_DB
 
   install:
     cmds:
