@@ -29,8 +29,9 @@ async def lifespan(app: FastAPI):
     logger.debug("Entering lifespan context manager")
     config = load_config()
 
-    logger.debug("Attempting to connect to PostgreSQL")
+    logger.debug("Attempting to connect to PostgreSQL...")
     await config.psql_db.connect()
+    await config.psql_db.pool.execute("SELECT 1=1 as one")
     logger.debug("PostgreSQL connected successfully")
 
     logger.debug("Attempting to connect to Redis")
