@@ -9,6 +9,7 @@ from fiber.logging_utils import get_logger
 
 import validator.db.constants as cst
 from core.constants import NETUID
+from core.models.utility_models import TaskStatus
 from validator.core.models import RawTask
 from validator.core.models import Task
 from validator.db.database import PSQLDB
@@ -67,7 +68,7 @@ async def get_nodes_assigned_to_task(task_id: str, psql_db: PSQLDB) -> List[Node
         return [Node(**dict(row)) for row in rows]
 
 
-async def get_tasks_with_status(status: str, psql_db: PSQLDB, include_not_ready_tasks=False) -> List[RawTask]:
+async def get_tasks_with_status(status: TaskStatus, psql_db: PSQLDB, include_not_ready_tasks=False) -> List[RawTask]:
     """Get all tasks with a specific status and delay_timestamp before current time if even_not_ready is False"""
 
     delay_timestamp_clause = (
@@ -83,8 +84,8 @@ async def get_tasks_with_status(status: str, psql_db: PSQLDB, include_not_ready_
             WHERE {cst.STATUS} = $1
             {delay_timestamp_clause}
         """
-        logger.info(f"Query: {query.replace('$1', repr(status))}")
-        rows = await connection.fetch(query, status)
+        logger.info(f"Query: {query.replace('$1', repr(status.value))}")
+        rows = await connection.fetch(query, status.value)
     logger.info(f"We got {len(rows)} tasks")
     return [RawTask(**dict(row)) for row in rows]
 
