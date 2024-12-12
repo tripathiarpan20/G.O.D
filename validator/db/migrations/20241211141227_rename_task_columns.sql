@@ -17,13 +17,15 @@ ALTER TABLE public.tasks
     ADD COLUMN trained_model_repository text DEFAULT NULL;
 
 
-
 UPDATE public.tasks
 SET user_id = '00000000-0000-0000-0000-000000000000'
 WHERE user_id IS NULL;
 
+CREATE INDEX idx_tasks_account_id ON public.tasks (account_id);
+
 -- change user_id to account_id and make it a non null uuid
 ALTER TABLE public.tasks ALTER COLUMN user_id SET NOT NULL;
+
 ALTER TABLE public.tasks
 ALTER COLUMN user_id TYPE UUID
 USING user_id::uuid;
