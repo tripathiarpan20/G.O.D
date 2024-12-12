@@ -114,6 +114,7 @@ async def get_all_task_details(
     task_status_responses = [
         TaskDetails(
             id=task.task_id,
+            account_id=task.account_id,
             status=task.status,
             base_model_repository=task.model_id,
             ds_repo=task.ds_id,
@@ -146,6 +147,7 @@ async def get_task_details(
 
     return TaskDetails(
         id=task_id,
+        account_id=task.account_id,
         status=task.status,
         base_model_repository=task.model_id,
         ds_repo=task.ds_id,

@@ -150,6 +150,7 @@ class AllOfNodeResults(BaseModel):
 
 class TaskDetails(BaseModel):
     id: UUID
+    account_id: UUID
     status: TaskStatus
     base_model_repository: str
     ds_repo: str
