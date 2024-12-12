@@ -71,7 +71,6 @@ class DatasetColumnsResponse(BaseModel):
     field_instruction: str
     field_input: str | None = None
     field_output: str | None = None
-    field_system: str | None = None
 
 
 class CreateTaskRequest(BaseModel):
