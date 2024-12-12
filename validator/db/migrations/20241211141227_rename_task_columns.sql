@@ -16,12 +16,6 @@ ALTER TABLE public.tasks
     ADD COLUMN system_format text,
     ADD COLUMN trained_model_repository text;
 
--- Since we only accept nulls for now
-ALTER TABLE public.tasks
-    ALTER COLUMN no_input_format DROP NOT NULL;
-
-ALTER TABLE public.tasks
-    ALTER COLUMN format DROP NOT NULL;
 
 
 UPDATE public.tasks
@@ -53,12 +47,6 @@ ALTER TABLE public.tasks RENAME COLUMN completed_at TO completed_timestamp;
 ALTER TABLE public.tasks
     DROP COLUMN system_format,
     DROP COLUMN trained_model_repository;
-
-ALTER TABLE public.tasks
-    ALTER COLUMN no_input_format SET NOT NULL;
-
-ALTER TABLE public.tasks
-    ALTER COLUMN format SET NOT NULL;
 
 
 ALTER TABLE public.tasks RENAME COLUMN account_id TO user_id;
