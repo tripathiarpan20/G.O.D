@@ -51,6 +51,10 @@ tasks:
       - pm2 delete validator || true
       - ./utils/start_validator.sh
 
+  postgres:
+    cmds:
+      - docker compose --env-file .vali.env -it postgresql psql -U$POSTGRES_USER $POSTGRES_DB
+
   install:
     cmds:
       - source $HOME/.venv/bin/activate
