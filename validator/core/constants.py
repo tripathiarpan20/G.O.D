@@ -28,7 +28,7 @@ SUBMISSION_ENDPOINT = "/get_latest_model_submission/"
 
 
 PROD_CONTENT_BASE_URL = "https://content.gradients.io"
-DEV_CONTENT_BASE_URL = "https://dataset-model-checker-1.onrender.com/"
+DEV_CONTENT_BASE_URL = "https://dev.content.gradients.io"
 
 # 241 is testnet
 CONTENT_BASE_URL = DEV_CONTENT_BASE_URL if NETUID == 241 else PROD_CONTENT_BASE_URL
