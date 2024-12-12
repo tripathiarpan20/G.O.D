@@ -28,6 +28,7 @@ UPDATED_TIMESTAMP = "updated_timestamp"
 
 # Task Table Columns
 TASK_ID = "task_id"
+ACCOUNT_ID = "account_id"
 MODEL_ID = "model_id"
 DS_ID = "ds_id"
 FIELD_SYSTEM = "field_system"
