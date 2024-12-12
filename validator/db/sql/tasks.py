@@ -83,6 +83,7 @@ async def get_tasks_with_status(status: str, psql_db: PSQLDB, include_not_ready_
             {delay_timestamp_clause}
         """
         rows = await connection.fetch(query, status)
+    logger.info(f"We got {len(rows)} tasks")
     return [RawTask(**dict(row)) for row in rows]
 
 
