@@ -105,11 +105,12 @@ async def get_node_results(
 
 
 async def get_all_task_details(
-    config: Config = Depends(get_config),
+    account_id: UUID,
     limit: int = 100,
     page: int = 1,
+    config: Config = Depends(get_config),
 ) -> List[TaskDetails]:
-    tasks = await task_sql.get_tasks(config.psql_db, limit, page)
+    tasks = await task_sql.get_tasks_by_account_id(config.psql_db, account_id, limit, page)
 
     task_status_responses = [
         TaskDetails(

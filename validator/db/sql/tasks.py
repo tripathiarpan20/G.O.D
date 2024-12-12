@@ -316,3 +316,32 @@ async def get_tasks(psql_db: PSQLDB, limit: int = 100, offset: int = 0) -> List[
 
         rows = await connection.fetch(query, limit, offset)
         return [Task(**dict(row)) for row in rows]
+
+
+async def get_tasks_by_account_id(psql_db: PSQLDB, account_id: UUID, limit: int = 100, offset: int = 0) -> List[Task]:
+    async with await psql_db.connection() as connection:
+        connection: Connection
+        query = f"""
+            WITH victorious_repo AS (
+                SELECT submissions.{cst.TASK_ID}, submissions.{cst.REPO}
+                FROM {cst.SUBMISSIONS_TABLE} submissions
+                JOIN {cst.TASK_NODES_TABLE} task_nodes
+                ON submissions.{cst.TASK_ID} = task_nodes.{cst.TASK_ID}
+                AND submissions.{cst.HOTKEY} = task_nodes.{cst.HOTKEY}
+                AND submissions.{cst.NETUID} = task_nodes.{cst.NETUID}
+                AND task_nodes.{cst.QUALITY_SCORE} IS NOT NULL
+                ORDER BY task_nodes.{cst.QUALITY_SCORE} DESC
+                LIMIT 1
+            )
+            SELECT
+                tasks.*,
+                victorious_repo.{cst.REPO} as trained_model_repository
+            FROM {cst.TASKS_TABLE} tasks
+            LEFT JOIN victorious_repo ON tasks.{cst.TASK_ID} = victorious_repo.{cst.TASK_ID}
+            WHERE tasks.{cst.ACCOUNT_ID} = $1
+            ORDER BY tasks.{cst.CREATED_AT} DESC
+            LIMIT $2 OFFSET $3
+        """
+
+        rows = await connection.fetch(query, account_id, limit, offset)
+        return [Task(**dict(row)) for row in rows]
