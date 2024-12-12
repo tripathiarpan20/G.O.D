@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 
 
 TASKS_CREATE_ENDPOINT = "/v1/tasks/create"
-GET_TASKS_ENDPOINT = "/v1/tasks"
+GET_TASKS_BY_ACCOUNT_ENDPOINT = "/v1/tasks/account/{account_id}"
 GET_TASK_DETAILS_ENDPOINT = "/v1/tasks/{task_id}"
 GET_TASKS_RESULTS_ENDPOINT = "/v1/tasks/breakdown/{task_id}"
 GET_NODE_RESULTS_ENDPOINT = "/v1/tasks/node_results/{hotkey}"
@@ -104,7 +104,7 @@ async def get_node_results(
     return AllOfNodeResults(hotkey=hotkey, task_results=miner_results)
 
 
-async def get_all_task_details(
+async def get_task_details_by_account(
     account_id: UUID,
     limit: int = 100,
     page: int = 1,
@@ -205,7 +205,7 @@ def factory_router() -> APIRouter:
     router.add_api_route(DELETE_TASK_ENDPOINT, delete_task, methods=["DELETE"])
     router.add_api_route(GET_TASKS_RESULTS_ENDPOINT, get_miner_breakdown, methods=["GET"])
     router.add_api_route(GET_NODE_RESULTS_ENDPOINT, get_node_results, methods=["GET"])
-    router.add_api_route(GET_TASKS_ENDPOINT, get_all_task_details, methods=["GET"])
+    router.add_api_route(GET_TASKS_BY_ACCOUNT_ENDPOINT, get_task_details_by_account, methods=["GET"])
     router.add_api_route(LEADERBOARD_ENDPOINT, get_leaderboard, methods=["GET"])
 
     return router
