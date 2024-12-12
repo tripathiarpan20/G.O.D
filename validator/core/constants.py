@@ -18,6 +18,9 @@ DELETE_S3_AFTER_COMPLETE = True
 
 VALI_CONFIG_PATH = "validator/test_axolotl.yml"
 
+# db stuff
+NULL_ACCOUNT_ID = "00000000-0000-0000-0000-000000000000"
+
 
 # api stuff should move this out to be shared by both miner and vali code?
 START_TRAINING_ENDPOINT = "/start_training/"

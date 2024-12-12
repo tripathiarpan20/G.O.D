@@ -78,6 +78,7 @@ async def create_task(
         status=TaskStatus.PENDING,
         termination_at=end_timestamp,
         hours_to_complete=request.hours_to_complete,
+        account_id=request.account_id,
     )
 
     task = await task_sql.add_task(task, config.psql_db)

@@ -16,6 +16,7 @@ class RawTask(BaseModel):
     model_id: str
     ds_id: str
     status: str
+    account_id: UUID
     times_delayed: int = 0
     hours_to_complete: int
     field_system: str | None = None
@@ -37,6 +38,7 @@ class RawTask(BaseModel):
     started_at: datetime | None = None
     termination_at: datetime | None = None
     completed_at: datetime | None = None
+
 
 
     # Turn off protected namespace for model

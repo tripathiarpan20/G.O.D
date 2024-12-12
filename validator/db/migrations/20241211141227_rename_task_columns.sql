@@ -23,8 +23,18 @@ ALTER TABLE public.tasks
 ALTER TABLE public.tasks
     ALTER COLUMN format DROP NOT NULL;
 
+
+UPDATE public.tasks
+SET user_id = '00000000-0000-0000-0000-000000000000'
+WHERE user_id IS NULL;
+
+-- change user_id to account_id and make it a non null uuid
+ALTER TABLE public.tasks ALTER COLUMN user_id SET NOT NULL;
 ALTER TABLE public.tasks
-    DROP COLUMN user_id;
+ALTER COLUMN user_id TYPE UUID
+USING user_id::uuid;
+
+ALTER TABLE public.tasks RENAME COLUMN user_id TO account_id;
 
 -- migrate:down
 ALTER TABLE public.tasks RENAME COLUMN field_system TO system;
@@ -50,5 +60,15 @@ ALTER TABLE public.tasks
 ALTER TABLE public.tasks
     ALTER COLUMN format SET NOT NULL;
 
+
+ALTER TABLE public.tasks RENAME COLUMN account_id TO user_id;
+
 ALTER TABLE public.tasks
-    ADD COLUMN user_id text;
+ALTER COLUMN user_id TYPE TEXT
+USING user_id::text;
+
+ALTER TABLE public.tasks ALTER COLUMN user_id DROP NOT NULL;
+
+UPDATE public.tasks
+SET user_id = NULL
+WHERE user_id = '00000000-0000-0000-0000-000000000000';

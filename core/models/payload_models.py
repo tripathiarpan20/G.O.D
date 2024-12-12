@@ -107,6 +107,8 @@ class SubmissionResponse(BaseModel):
 
 
 class NewTaskRequest(BaseModel):
+    account_id: UUID
+
     field_instruction: str = Field(..., description="The column name for the instruction", examples=["instruction"])
     field_input: str | None = Field(None, description="The column name for the input", examples=["input"])
     field_output: str | None = Field(None, description="The column name for the output", examples=["output"])
@@ -119,6 +121,7 @@ class NewTaskRequest(BaseModel):
 
     format: None = None
     no_input_format: None = None
+
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}
