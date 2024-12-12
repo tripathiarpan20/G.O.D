@@ -21,7 +21,6 @@ UPDATE public.tasks
 SET user_id = '00000000-0000-0000-0000-000000000000'
 WHERE user_id IS NULL;
 
-CREATE INDEX idx_tasks_account_id ON public.tasks (account_id);
 
 -- change user_id to account_id and make it a non null uuid
 ALTER TABLE public.tasks ALTER COLUMN user_id SET NOT NULL;
@@ -31,6 +30,7 @@ ALTER COLUMN user_id TYPE UUID
 USING user_id::uuid;
 
 ALTER TABLE public.tasks RENAME COLUMN user_id TO account_id;
+CREATE INDEX idx_tasks_account_id ON public.tasks (account_id);
 
 -- migrate:down
 ALTER TABLE public.tasks RENAME COLUMN field_system TO system;
@@ -51,6 +51,7 @@ ALTER TABLE public.tasks
     DROP COLUMN trained_model_repository;
 
 
+DROP INDEX idx_tasks_account_id;
 ALTER TABLE public.tasks RENAME COLUMN account_id TO user_id;
 
 ALTER TABLE public.tasks
