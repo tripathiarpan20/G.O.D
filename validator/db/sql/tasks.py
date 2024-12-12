@@ -78,7 +78,7 @@ async def get_tasks_with_status(status: str, psql_db: PSQLDB, include_not_ready_
             {delay_timestamp_clause}
         """
         rows = await connection.fetch(query, status)
-        return [RawTask(**dict(row)) for row in rows]
+    return [RawTask(**dict(row)) for row in rows]
 
 
 async def assign_node_to_task(task_id: str, node: Node, psql_db: PSQLDB) -> None:
