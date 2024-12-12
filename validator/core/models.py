@@ -10,50 +10,19 @@ from pydantic import BaseModel
 from pydantic import Field
 
 
-class TokenizerConfig(BaseModel):
-    bos_token: str | None = None
-    eos_token: str | None = None
-    pad_token: str | None = None
-    unk_token: str | None = None
-    chat_template: str | None = None
-    use_default_system_prompt: bool | None = None
-
-
 class ModelConfig(BaseModel):
     architectures: list[str]
     model_type: str
-    tokenizer_config: TokenizerConfig
 
 
 class DatasetData(BaseModel):
     dataset_id: str
     sparse_columns: list[str] = Field(default_factory=list)
     non_sparse_columns: list[str] = Field(default_factory=list)
-    tags: list[str] = Field(default_factory=list)
-    author: str | None = None
-    disabled: bool = False
-    gated: bool = False
-    last_modified: str | None = None
-    likes: int = 0
-    trending_score: int | None = None
-    private: bool = False
-    downloads: int = 0
-    created_at: str | None = None
-    description: str | None = None
-    sha: str | None = None
 
 
 class ModelData(BaseModel):
     model_id: str
-    downloads: int | None = None
-    likes: int | None = None
-    private: bool | None = None
-    trending_score: int | None = None
-    tags: list[str] | None = None
-    pipeline_tag: str | None = None
-    library_name: str | None = None
-    created_at: str | None = None
-    config: dict
     parameter_count: int | None = None
 
 
