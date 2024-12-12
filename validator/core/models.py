@@ -32,7 +32,7 @@ class RawTask(BaseModel):
     assigned_miners: list[int] | None = None
     miner_scores: list[float] | None = None
 
-    created_at: datetime | None = None
+    created_at: datetime
     next_delay_at: datetime | None = None
     updated_at: datetime | None = None
     started_at: datetime | None = None

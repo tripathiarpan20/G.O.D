@@ -76,6 +76,7 @@ async def create_task(
         is_organic=True,
         no_input_format=request.no_input_format,
         status=TaskStatus.PENDING,
+        created_at=current_time,
         termination_at=end_timestamp,
         hours_to_complete=request.hours_to_complete,
         account_id=request.account_id,

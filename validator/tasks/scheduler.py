@@ -81,6 +81,7 @@ async def create_synthetic_task(
         field_output=columns.field_output,
         status=TaskStatus.PENDING,
         is_organic=False,
+        created_at=current_time,
         termination_at=end_timestamp,
         hours_to_complete=number_of_hours,
         account_id=cst.NULL_ACCOUNT_ID,

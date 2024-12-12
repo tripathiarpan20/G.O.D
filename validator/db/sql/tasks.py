@@ -20,8 +20,8 @@ async def add_task(task: RawTask, psql_db: PSQLDB) -> RawTask:
         query = f"""
             INSERT INTO {cst.TASKS_TABLE}
             ({cst.MODEL_ID}, {cst.DS_ID}, {cst.FIELD_SYSTEM}, {cst.FIELD_INSTRUCTION}, {cst.FIELD_INPUT}, {cst.STATUS},
-             {cst.HOURS_TO_COMPLETE}, {cst.FIELD_OUTPUT}, {cst.FORMAT}, {cst.NO_INPUT_FORMAT}, {cst.IS_ORGANIC})
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+             {cst.HOURS_TO_COMPLETE}, {cst.FIELD_OUTPUT}, {cst.FORMAT}, {cst.NO_INPUT_FORMAT}, {cst.IS_ORGANIC}, {cst.CREATED_AT})
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING {cst.TASK_ID}
         """
         task_id = await connection.fetchval(
@@ -37,6 +37,7 @@ async def add_task(task: RawTask, psql_db: PSQLDB) -> RawTask:
             task.format,
             task.no_input_format,
             task.is_organic,
+            task.created_at,
         )
         return await get_task(task_id, psql_db)
 
