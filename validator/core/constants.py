@@ -30,15 +30,12 @@ SUBMISSION_ENDPOINT = "/get_latest_model_submission/"
 PROD_CONTENT_BASE_URL = "https://content.gradients.io"
 DEV_CONTENT_BASE_URL = "https://dataset-model-checker-1.onrender.com/"
 
+# 241 is testnet
+CONTENT_BASE_URL = DEV_CONTENT_BASE_URL if NETUID == 241 else PROD_CONTENT_BASE_URL
 
-def get_content_base_url():
-    # 241 is testnet
-    return DEV_CONTENT_BASE_URL if NETUID == 241 else PROD_CONTENT_BASE_URL
-
-
-GET_RANDOM_DATASETS_ENDPOINT = f"{get_content_base_url()}/datasets/random"
-GET_RANDOM_MODELS_ENDPOINT = f"{get_content_base_url()}/models/random"
-GET_COLUMNS_FOR_DATASET_ENDPOINT = f"{get_content_base_url()}/dataset/{{dataset}}/columns/suggest"
+GET_RANDOM_DATASETS_ENDPOINT = f"{CONTENT_BASE_URL}/datasets/random"
+GET_RANDOM_MODELS_ENDPOINT = f"{CONTENT_BASE_URL}/models/random"
+GET_COLUMNS_FOR_DATASET_ENDPOINT = f"{CONTENT_BASE_URL}/dataset/{{dataset}}/columns/suggest"
 
 
 GET_ALL_DATASETS_ID = "dataset_id"
