@@ -1,5 +1,7 @@
 import os
 
+from core.constants import NETUID
+
 
 SUCCESS = "success"
 ACCOUNT_ID = "account_id"
@@ -24,9 +26,19 @@ START_TRAINING_ENDPOINT = "/start_training/"
 TASK_OFFER_ENDPOINT = "/task_offer/"
 SUBMISSION_ENDPOINT = "/get_latest_model_submission/"
 
-GET_RANDOM_DATASETS_ENDPOINT = "https://content.gradients.io/datasets/random"
-GET_RANDOM_MODELS_ENDPOINT = "https://content.gradients.io/models/random"
-GET_COLUMNS_FOR_DATASET_ENDPOINT = "https://content.gradients.io/dataset/{dataset}/columns/suggest"
+
+PROD_CONTENT_BASE_URL = "https://content.gradients.io"
+DEV_CONTENT_BASE_URL = "https://dataset-model-checker-1.onrender.com/"
+
+
+def get_content_base_url():
+    # 241 is testnet
+    return DEV_CONTENT_BASE_URL if NETUID == 241 else PROD_CONTENT_BASE_URL
+
+
+GET_RANDOM_DATASETS_ENDPOINT = f"{get_content_base_url()}/datasets/random"
+GET_RANDOM_MODELS_ENDPOINT = f"{get_content_base_url()}/models/random"
+GET_COLUMNS_FOR_DATASET_ENDPOINT = f"{get_content_base_url()}/dataset/{{dataset}}/columns/suggest"
 
 
 GET_ALL_DATASETS_ID = "dataset_id"
@@ -37,7 +49,6 @@ GET_ALL_MODELS_ID = "model_id"
 
 HOW_MANY_TASKS_MINIMAL_AT_THE_SAME_TIME = 5
 NUMBER_OF_MINUTES_BETWEEN_SYNTH_TASK_CHECK = 30
-
 
 
 # data stuff
