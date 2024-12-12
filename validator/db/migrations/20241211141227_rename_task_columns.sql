@@ -13,8 +13,8 @@ ALTER TABLE public.tasks RENAME COLUMN started_timestamp TO started_at;
 ALTER TABLE public.tasks RENAME COLUMN completed_timestamp TO completed_at;
 
 ALTER TABLE public.tasks
-    ADD COLUMN system_format text,
-    ADD COLUMN trained_model_repository text;
+    ADD COLUMN system_format text DEFAULT NULL,
+    ADD COLUMN trained_model_repository text DEFAULT NULL;
 
 
 
