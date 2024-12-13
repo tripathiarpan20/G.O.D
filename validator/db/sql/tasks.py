@@ -29,9 +29,9 @@ async def add_task(task: RawTask, psql_db: PSQLDB) -> RawTask:
              {cst.HOURS_TO_COMPLETE}, {cst.FIELD_OUTPUT}, {cst.FORMAT},
              {cst.NO_INPUT_FORMAT}, {cst.IS_ORGANIC}, {cst.CREATED_AT})
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-            RETURNING {cst.TASK_ID}
+            RETURNING *
         """
-        task_id = await connection.fetchval(
+        task = await connection.fetchrow(
             query,
             task.account_id,
             task.model_id,
@@ -47,7 +47,7 @@ async def add_task(task: RawTask, psql_db: PSQLDB) -> RawTask:
             task.is_organic,
             task.created_at,
         )
-        return await get_task(task_id, psql_db)
+    return RawTask(**task)
 
 
 async def get_nodes_assigned_to_task(task_id: str, psql_db: PSQLDB) -> List[Node]:
