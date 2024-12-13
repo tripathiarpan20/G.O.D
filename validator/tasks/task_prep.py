@@ -12,7 +12,7 @@ from fiber.logging_utils import get_logger
 
 import validator.core.constants as cst
 from validator.evaluation.utils import get_default_dataset_config
-from validator.synth.synth import generate_synthetic_dataset
+from validator.synth.synth import generate_augmented_dataset
 from validator.utils.cache_clear import delete_dataset_from_cache
 from validator.utils.minio import async_minio_client
 
@@ -82,7 +82,7 @@ async def get_additional_synth_data(dataset: Dataset, columns_to_sample: List[st
         logger.info(f"There is an issue with this sample data for some reason. dataset: {sampled_data}; error: {e}")
         return None
 
-    synthetic_data = await generate_synthetic_dataset(
+    synthetic_data = await generate_augmented_dataset(
         sampled_data_list, column_to_reformulate=column_to_reformulate, keypair=keypair
     )
 

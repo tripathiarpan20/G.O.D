@@ -119,6 +119,7 @@ async def post_to_nineteen_ai(payload: dict[str, Any], keypair: Keypair) -> str 
     async with httpx.AsyncClient(timeout=120) as client:
         response = await client.post(url=PROMPT_GEN_ENDPOINT, json=payload, headers=headers)
         if response.status_code != 200:
+            # NOTE: What do to about these as they pollute everywhere
             logger.error(f"Error in nineteen ai response: {response.content}")
             response.raise_for_status()
         response_json = response.json()

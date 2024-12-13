@@ -15,7 +15,6 @@ def query_substrate(substrate: SubstrateInterface, module: str, method: str, par
 
         return substrate, return_val
     except Exception:
-
         substrate = SubstrateInterface(url=substrate.url)
 
         query_result = substrate.query(module, method, params)
