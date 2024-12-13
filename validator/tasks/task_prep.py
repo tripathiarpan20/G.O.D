@@ -79,7 +79,7 @@ async def get_additional_synth_data(dataset: Dataset, columns_to_sample: List[st
     try:
         sampled_data_list = list(sampled_data)
     except Exception as e:
-        logger.info(f"There is an issue with this sample data for some reason {sampled_data} {e}")
+        logger.info(f"There is an issue with this sample data for some reason. dataset: {sampled_data}; error: {e}")
         return None
 
     synthetic_data = await generate_synthetic_dataset(
