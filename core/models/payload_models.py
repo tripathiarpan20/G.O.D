@@ -79,7 +79,7 @@ class CreateTaskRequest(BaseModel):
     field_output: str | None = Field(None, description="The column name for the output", examples=["output"])
     field_system: str | None = Field(None, description="The column name for the system (prompt)", examples=["system"])
 
-    ds_repo: str = Field(..., description="The repository for the dataset", examples=["HuggingFaceFW/fineweb-2"])
+    ds_repo: str = Field(..., description="The repository for the dataset", examples=["yahma/alpaca-cleaned"])
     model_repo: str = Field(..., description="The repository for the model", examples=["Qwen/Qwen2.5-Coder-32B-Instruct"])
     hours_to_complete: int = Field(..., description="The number of hours to complete the task", examples=[1])
 
@@ -113,7 +113,7 @@ class NewTaskRequest(BaseModel):
     field_output: str | None = Field(None, description="The column name for the output", examples=["output"])
     field_system: str | None = Field(None, description="The column name for the system (prompt)", examples=["system"])
 
-    ds_repo: str = Field(..., description="The repository for the dataset", examples=["HuggingFaceFW/fineweb-2"])
+    ds_repo: str = Field(..., description="The repository for the dataset", examples=["yahma/alpaca-cleaned"])
     model_repo: str = Field(..., description="The repository for the model", examples=["Qwen/Qwen2.5-Coder-32B-Instruct"])
 
     hours_to_complete: int = Field(..., description="The number of hours to complete the task", examples=[1])

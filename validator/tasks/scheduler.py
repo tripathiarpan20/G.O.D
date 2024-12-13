@@ -56,7 +56,7 @@ async def _get_columns_for_dataset(dataset_id: str, keypair: Keypair) -> Dataset
     try:
         columns = DatasetColumnsResponse.model_validate(response)
     except Exception as exc:
-        logger.error(f"{exc}")
+        logger.error(f"The get columns for dataset endpoint should return a DatasetColumnsResponse type: {exc}")
         raise TypeError(f"The get columns for dataset endpoint should return a DatasetColumnsResponse type: {exc}")
     return columns
 
