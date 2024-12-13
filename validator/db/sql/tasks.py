@@ -102,10 +102,10 @@ async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
     """Update a task and its assigned miners"""
     existing_task = await get_task(updated_task.task_id, psql_db)
     if not existing_task:
-        raise ValueError("Task not found")
+        raise ValueError(f"Task {updated_task.task_id} not found in the database?")
 
     updates = {}
-    for field, value in updated_task.dict(exclude_unset=True, exclude={"assigned_miners", "updated_timestamp"}).items():
+    for field, value in updated_task.dict(exclude_unset=True, exclude={cst.ASSIGNED_MINERS, cst.UPDATED_AT}).items():
         if getattr(existing_task, field) != value:
             updates[field] = value
 
@@ -119,7 +119,6 @@ async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
                     UPDATE {cst.TASKS_TABLE}
                     SET {set_clause}{', ' if updates else ''}{cst.UPDATED_AT} = CURRENT_TIMESTAMP
                     WHERE {cst.TASK_ID} = $1
-                    RETURNING *
                 """
                 await connection.execute(query, updated_task.task_id, *values)
             else:
@@ -127,7 +126,6 @@ async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
                     UPDATE {cst.TASKS_TABLE}
                     SET {cst.UPDATED_AT} = CURRENT_TIMESTAMP
                     WHERE {cst.TASK_ID} = $1
-                    RETURNING *
                 """
                 await connection.execute(query, updated_task.task_id)
 
