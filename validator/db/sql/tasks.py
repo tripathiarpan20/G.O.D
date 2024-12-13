@@ -75,7 +75,6 @@ async def get_tasks_with_status(status: TaskStatus, psql_db: PSQLDB, include_not
         "" if include_not_ready_tasks else f"AND ({cst.NEXT_DELAY_AT} IS NULL OR {cst.NEXT_DELAY_AT} <= NOW())"
     )
 
-
     async with await psql_db.connection() as connection:
         connection: Connection
         query = f"""
