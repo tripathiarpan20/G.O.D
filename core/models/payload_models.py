@@ -73,24 +73,6 @@ class DatasetColumnsResponse(BaseModel):
     field_output: str | None = None
 
 
-class CreateTaskRequest(BaseModel):
-    field_instruction: str = Field(..., description="The column name for the instruction", examples=["instruction"])
-    field_input: str | None = Field(None, description="The column name for the input", examples=["input"])
-    field_output: str | None = Field(None, description="The column name for the output", examples=["output"])
-    field_system: str | None = Field(None, description="The column name for the system (prompt)", examples=["system"])
-
-    ds_repo: str = Field(..., description="The repository for the dataset", examples=["yahma/alpaca-cleaned"])
-    model_repo: str = Field(..., description="The repository for the model", examples=["Qwen/Qwen2.5-Coder-32B-Instruct"])
-    hours_to_complete: int = Field(..., description="The number of hours to complete the task", examples=[1])
-
-    # Turn off protected namespace for model
-    model_config = {"protected_namespaces": ()}
-
-
-class CreateTaskResponse(BaseModel):
-    success: bool = Field(..., description="Whether the task was created successfully")
-    task_id: str = Field(..., description="The ID of the task")
-    message: str | None = Field(None, description="The message from the task creation")
 
 
 class SubmitTaskSubmissionRequest(BaseModel):
