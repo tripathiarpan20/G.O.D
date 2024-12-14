@@ -232,7 +232,6 @@ def attempt_delay_task(task: RawTask):
 
 
 async def _find_miners_for_task(config: Config):
-    logger.info('NOW LOOKING FOR MINERS')
     pending_tasks = await tasks_sql.get_tasks_with_status(
         status=TaskStatus.LOOKING_FOR_NODES, psql_db=config.psql_db
     )
