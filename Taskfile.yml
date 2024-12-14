@@ -36,7 +36,6 @@ tasks:
     cmds:
       - docker compose --env-file .vali.env -f docker-compose.yml -f docker-compose.dev.yml up -d --build --remove-orphans
       - docker compose --env-file .vali.env -f docker-compose.yml -f docker-compose.dev.yml  run dbmate --wait up
-      - pm2 delete validator || true
       - ./utils/start_validator.sh
 
   autoupdates:
@@ -48,7 +47,6 @@ tasks:
     cmds:
       - docker compose --env-file .vali.env up -d --build --remove-orphans
       - docker compose --env-file .vali.env -f docker-compose.yml run dbmate --wait up
-      - pm2 delete validator || true
       - ./utils/start_validator.sh
 
   postgres:
