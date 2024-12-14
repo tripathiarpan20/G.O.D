@@ -18,10 +18,7 @@ from core.models.utility_models import FileFormat
 from core.models.utility_models import TaskStatus
 from validator.core.config import Config
 from validator.core.models import RawTask
-from validator.core.refresh_nodes import get_and_store_nodes
 from validator.evaluation.scoring import evaluate_and_score
-from validator.evaluation.weight_setting import set_weights_periodically
-from validator.tasks.scheduler import synthetic_task_loop
 from validator.tasks.task_prep import prepare_task
 from validator.utils.call_endpoint import process_non_stream_fiber
 
@@ -64,7 +61,7 @@ async def _make_offer(node: Node, request: MinerTaskRequest, config: Config) -> 
 async def _select_miner_pool_and_add_to_task(task: RawTask, nodes: list[Node], config: Config) -> RawTask:
     if len(nodes) < cst.MINIMUM_MINER_POOL:
         logger.warning(f"Not enough nodes available. Need at least {cst.MINIMUM_MINER_POOL}, but only have {len(nodes)}.")
-        task = attempt_delay_task(task)
+        task = _attempt_delay_task(task)
         return task
 
     selected_miners: list[str] = []
@@ -86,7 +83,7 @@ async def _select_miner_pool_and_add_to_task(task: RawTask, nodes: list[Node], c
     available_nodes = [node for node in nodes if node.hotkey not in already_assigned_hotkeys]
     if not available_nodes:
         logger.error("No nodes available to assign to the task! Why not?!")
-        task = attempt_delay_task(task)
+        task = _attempt_delay_task(task)
         await tasks_sql.update_task(task, config.psql_db)
         return task
 
@@ -113,7 +110,7 @@ async def _select_miner_pool_and_add_to_task(task: RawTask, nodes: list[Node], c
             f"Not enough miners accepted the task. We only have {len(selected_miners)} but we "
             f"need at least {cst.MINIMUM_MINER_POOL}"
         )
-        task = attempt_delay_task(task)
+        task = _attempt_delay_task(task)
         return task
     else:
         task.assigned_miners = selected_miners
@@ -150,7 +147,7 @@ async def _let_miners_know_to_start_training(task: RawTask, nodes: list[Node], c
         logger.info(f"The response we got from {node.node_id} was {response}")
 
 
-async def assign_miners(task: RawTask, config: Config):
+async def _find_and_select_miners_for_task(task: RawTask, config: Config):
     logger.info("IN ASSIGNING MINERS")
     try:
         nodes = await nodes_sql.get_all_nodes(config.psql_db)
@@ -160,11 +157,11 @@ async def assign_miners(task: RawTask, config: Config):
 
     except Exception as e:
         logger.error(f"Error assigning miners to task {task.task_id}: {e}", exc_info=True)
-        task = attempt_delay_task(task)
+        task = _attempt_delay_task(task)
         await tasks_sql.update_task(task, config.psql_db)
 
 
-def attempt_delay_task(task: RawTask):
+def _attempt_delay_task(task: RawTask):
     assert (
         task.created_at is not None and task.next_delay_at is not None and task.times_delayed is not None
     ), "We wanted to check delay vs created timestamps but they are missing"
@@ -187,7 +184,9 @@ def attempt_delay_task(task: RawTask):
 
 async def _find_miners_for_task(config: Config):
     pending_tasks = await tasks_sql.get_tasks_with_status(status=TaskStatus.LOOKING_FOR_NODES, psql_db=config.psql_db)
-    await asyncio.gather(*[assign_miners(task, config) for task in pending_tasks[: cst.MAX_CONCURRENT_MINER_ASSIGNMENTS]])
+    await asyncio.gather(
+        *[_find_and_select_miners_for_task(task, config) for task in pending_tasks[: cst.MAX_CONCURRENT_MINER_ASSIGNMENTS]]
+    )
 
 
 async def _prep_task(task: RawTask, config: Config):
@@ -249,32 +248,20 @@ async def _evaluate_task(task: RawTask, config: Config):
         await tasks_sql.update_task(task, config.psql_db)
 
 
-async def process_completed_tasks(config: Config) -> None:
-    while True:
-        completed_tasks = await tasks_sql.get_tasks_ready_to_evaluate(config.psql_db)
-        if len(completed_tasks) > 0:
-            logger.info(f"There are {len(completed_tasks)} awaiting evaluation")
-            for task in completed_tasks:
-                await _evaluate_task(task, config)
-        if len(completed_tasks) == 0:
-            logger.info("There are no tasks to evaluate - waiting 30 seconds")
-            await asyncio.sleep(30)
-
-
 async def _move_back_to_looking_for_nodes(task: RawTask, config: Config):
     task.status = TaskStatus.LOOKING_FOR_NODES
     await tasks_sql.update_task(task, config.psql_db)
 
 
 async def _handle_delayed_tasks(config: Config):
-    logger.info('LOOKING FOR DELAYED TASKS TO HANDLE')
+    logger.info("LOOKING FOR DELAYED TASKS TO HANDLE")
     finished_delay_tasks = await tasks_sql.get_tasks_with_status(TaskStatus.DELAYED, psql_db=config.psql_db)
     logger.info(f"We have {len(finished_delay_tasks)} that we're ready to offer to miners again")
     await asyncio.gather(*[_move_back_to_looking_for_nodes(task, config) for task in finished_delay_tasks])
 
 
 async def process_pending_tasks(config: Config) -> None:
-    logger.info('STARTING A PROCESSING TASK CYCLE')
+    logger.info("STARTING A PROCESSING TASK CYCLE")
     while True:
         try:
             await _processing_pending_tasks(config)
@@ -286,41 +273,13 @@ async def process_pending_tasks(config: Config) -> None:
             await asyncio.sleep(30)
 
 
-async def validator_cycle(config: Config) -> None:
-    logger.info('STARTING A VALIDATOR CYCLE')
-    await asyncio.gather(
-        process_completed_tasks(config),
-        process_pending_tasks(config),
-    )
-
-
-async def node_refresh_cycle(config: Config) -> None:
+async def process_completed_tasks(config: Config) -> None:
     while True:
-        try:
-            logger.info("Attempting to refresh_nodes")
-            # 1 minute timeout
-            await asyncio.wait_for(get_and_store_nodes(config), timeout=60)
-            await asyncio.sleep(900)
-        except asyncio.TimeoutError:
-            logger.error("Node refresh timed out after 5 minutes... :( Please look into this!!")
-            await asyncio.sleep(60)
-
-
-async def run_validator_cycles(config: Config) -> None:
-    await asyncio.gather(
-        node_refresh_cycle(config),
-        synthetic_task_loop(config),
-        set_weights_periodically(config),
-        _run_main_validator_loop(config),
-    )
-
-
-async def _run_main_validator_loop(config: Config) -> None:
-    while True:
-        await validator_cycle(config)
-        # Add small sleep to prevent tight loop
-        await asyncio.sleep(30)
-
-
-def init_validator_cycles(config: Config) -> RawTask:
-    return asyncio.create_task(run_validator_cycles(config))
+        completed_tasks = await tasks_sql.get_tasks_ready_to_evaluate(config.psql_db)
+        if len(completed_tasks) > 0:
+            logger.info(f"There are {len(completed_tasks)} awaiting evaluation")
+            for task in completed_tasks:
+                await _evaluate_task(task, config)
+        if len(completed_tasks) == 0:
+            logger.info("There are no tasks to evaluate - waiting 30 seconds")
+            await asyncio.sleep(30)

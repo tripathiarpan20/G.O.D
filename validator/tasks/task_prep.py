@@ -11,8 +11,8 @@ from fiber import Keypair
 from fiber.logging_utils import get_logger
 
 import validator.core.constants as cst
+from validator.augmentation.augmentation import generate_augmented_dataset
 from validator.evaluation.utils import get_default_dataset_config
-from validator.synth.synth import generate_augmented_dataset
 from validator.utils.cache_clear import delete_dataset_from_cache
 from validator.utils.minio import async_minio_client
 

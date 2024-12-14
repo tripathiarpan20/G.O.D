@@ -61,7 +61,7 @@ async def _get_columns_for_dataset(dataset_id: str, keypair: Keypair) -> Dataset
     return columns
 
 
-async def create_synthetic_task(
+async def _create_synthetic_task(
     config: Config,
     models: AsyncGenerator[str, None],
     datasets: AsyncGenerator[str, None],
@@ -103,11 +103,11 @@ async def _add_new_task_to_network_if_not_enough(
     logger.info(f"There are {len(current_training_tasks)} running at the moment")
     if len(current_delayed_tasks) == 0 and len(current_training_tasks) < cst.HOW_MANY_TASKS_MINIMAL_AT_THE_SAME_TIME:
         logger.info("This is less than the minimal - creating a new task")
-        await create_synthetic_task(config, models, datasets)
+        await _create_synthetic_task(config, models, datasets)
 
 
-async def synthetic_task_loop(config: Config):
-    logger.info("Starting the synthetic task loop")
+async def schedule_synthetics_periodically(config: Config):
+    logger.info("Starting the synthetic schedule loop...")
     datasets = _get_datasets(config.keypair)
     models = _get_models(config.keypair)
     while True:

@@ -1,10 +1,7 @@
-import asyncio
 import os
 
 import uvicorn
 from dotenv import load_dotenv
-
-from validator.utils.call_endpoint import sign_up_cron_job
 
 
 load_dotenv(os.getenv("ENV_FILE", ".env"))
@@ -16,7 +13,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fiber.logging_utils import get_logger
 
 from validator.core.config import load_config
-from validator.core.cycle import init_validator_cycles
 from validator.endpoints.health import factory_router as health_router
 from validator.endpoints.tasks import factory_router as tasks_router
 
@@ -38,18 +34,8 @@ async def lifespan(app: FastAPI):
     await config.redis_db.ping()
     logger.debug("Redis connected successfully")
 
-    asyncio.create_task(sign_up_cron_job(config.keypair))
-
     logger.info("Starting up...")
     app.state.config = config
-
-    # Start the validation cycles
-    try:
-        logger.debug("Initializing validator cycle")
-        init_validator_cycles(config)
-        logger.debug("Validator cycle initialized")
-    except Exception as e:
-        logger.error(f"Failed to initialize validator cycle: {e}")
 
     yield
 
