@@ -1,3 +1,8 @@
+from dotenv import load_dotenv
+
+
+load_dotenv(".vali.env")
+
 import asyncio
 
 from fiber.logging_utils import get_logger
