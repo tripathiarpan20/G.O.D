@@ -23,6 +23,8 @@ class ModelConfig(BaseModel):
     model_type: str
     tokenizer_config: TokenizerConfig
 
+    model_config = {"protected_namespaces": ()}
+
 
 class DatasetData(BaseModel):
     dataset_id: str
@@ -54,6 +56,8 @@ class ModelData(BaseModel):
     created_at: str | None = None
     config: dict
     parameter_count: int | None = None
+
+    model_config = {"protected_namespaces": ()}
 
 
 class RawTask(BaseModel):
@@ -174,6 +178,9 @@ class NodeStats(BaseModel):
     quality_metrics: QualityMetrics
     workload_metrics: WorkloadMetrics
     model_metrics: ModelMetrics
+
+
+    model_config = {"protected_namespaces": ()}
 
 
 class AllNodeStats(BaseModel):
