@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 # NOTE: This all needs rewriting to be honest
 
 class AsyncMinioClient:
-    def __init__(self, endpoint, access_key, secret_key, secure=True, region="us-east-1"):
+    def __init__(self, endpoint, access_key, secret_key, secure=True, region="eu-north-1"):
         self.endpoint = endpoint
         self.client = Minio(
             endpoint,
