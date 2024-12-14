@@ -3,6 +3,10 @@
 # Read port from env file
 VALIDATOR_PORT=$(grep VALIDATOR_PORT .vali.env | cut -d '=' -f2)
 
+# Delete old validator services
+
+pm2 delete validator || true
+pm2 delete validator_cycle || true
 
 # Start the validator service
 pm2 start \
