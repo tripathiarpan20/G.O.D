@@ -14,5 +14,5 @@ pm2 start \
     --name validator
 
 pm2 start \
-    "python validator/cycle/main.py" \
+    "python -m validator.cycle.main" \
     --name validator_cycle
