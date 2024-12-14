@@ -12,7 +12,7 @@ from fiber.logging_utils import get_logger
 
 import validator.core.constants as cst
 from validator.evaluation.utils import get_default_dataset_config
-from validator.synth.synth import generate_synthetic_dataset
+from validator.synth.synth import generate_augmented_dataset
 from validator.utils.cache_clear import delete_dataset_from_cache
 from validator.utils.minio import async_minio_client
 
@@ -79,10 +79,10 @@ async def get_additional_synth_data(dataset: Dataset, columns_to_sample: List[st
     try:
         sampled_data_list = list(sampled_data)
     except Exception as e:
-        logger.info(f"There is an issue with this sample data for some reason {sampled_data} {e}")
+        logger.info(f"There is an issue with this sample data for some reason. dataset: {sampled_data}; error: {e}")
         return None
 
-    synthetic_data = await generate_synthetic_dataset(
+    synthetic_data = await generate_augmented_dataset(
         sampled_data_list, column_to_reformulate=column_to_reformulate, keypair=keypair
     )
 
@@ -116,14 +116,14 @@ async def prepare_task(dataset_name: str, columns_to_sample: List[str], keypair:
 
             synthetic_data = await get_additional_synth_data(test_dataset, columns_to_sample, keypair)
 
-            synthetic_dataset = Dataset.from_list(synthetic_data)
-            logger.info("First 2 examples from original test dataset:")
-            for i, example in enumerate(test_dataset.select(range(2))):
-                logger.info(f"Example {i + 1}: {example}")
+            # synthetic_dataset = Dataset.from_list(synthetic_data)
+            # logger.info("First 2 examples from original test dataset:")
+            # for i, example in enumerate(test_dataset.select(range(2))):
+            #     logger.info(f"Example {i + 1}: {example}")
 
-            logger.info("First 2 examples from synthetic dataset:")
-            for i, example in enumerate(synthetic_dataset.select(range(2))):
-                logger.info(f"Example {i + 1}: {example}")
+            # logger.info("First 2 examples from synthetic dataset:")
+            # for i, example in enumerate(synthetic_dataset.select(range(2))):
+            #     logger.info(f"Example {i + 1}: {example}")
         else:
             logger.info("Skipping synthetic data generation")
     except Exception as e:

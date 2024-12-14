@@ -52,6 +52,7 @@ COMPLETED_AT = "completed_at"
 TERMINATION_AT = "termination_at"
 IS_ORGANIC = "is_organic"
 TIMES_DELAYED = "times_delayed"
+ASSIGNED_MINERS = "assigned_miners"
 
 # Submissions Table Columns
 SUBMISSION_ID = "submission_id"
