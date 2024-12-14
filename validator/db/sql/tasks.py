@@ -97,16 +97,13 @@ async def assign_node_to_task(task_id: str, node: Node, psql_db: PSQLDB) -> None
             VALUES ($1, $2, $3)
         """
         await connection.execute(query, task_id, node.hotkey, NETUID)
-
-
 async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
-    """Update a task and its assigned miners"""
     existing_task = await get_task(updated_task.task_id, psql_db)
     if not existing_task:
-        raise ValueError("Task not found")
+        raise ValueError(f"Task {updated_task.task_id} not found in the database?")
 
     updates = {}
-    for field, value in updated_task.dict(exclude_unset=True, exclude={"assigned_miners", "updated_timestamp"}).items():
+    for field, value in updated_task.dict(exclude_unset=True, exclude={cst.ASSIGNED_MINERS, cst.UPDATED_AT}).items():
         if getattr(existing_task, field) != value:
             updates[field] = value
 
@@ -118,9 +115,8 @@ async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
                 values = list(updates.values())
                 query = f"""
                     UPDATE {cst.TASKS_TABLE}
-                    SET {set_clause}{', ' if updates else ''}{cst.UPDATED_AT} = CURRENT_TIMESTAMP
+                    SET {set_clause}, {cst.UPDATED_AT} = CURRENT_TIMESTAMP
                     WHERE {cst.TASK_ID} = $1
-                    RETURNING *
                 """
                 await connection.execute(query, updated_task.task_id, *values)
             else:
@@ -128,7 +124,6 @@ async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
                     UPDATE {cst.TASKS_TABLE}
                     SET {cst.UPDATED_AT} = CURRENT_TIMESTAMP
                     WHERE {cst.TASK_ID} = $1
-                    RETURNING *
                 """
                 await connection.execute(query, updated_task.task_id)
 
@@ -139,7 +134,6 @@ async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
                     NETUID,
                 )
                 if updated_task.assigned_miners:
-                    # Now assuming assigned_miners is just a list of hotkeys
                     query = f"""
                         INSERT INTO {cst.TASK_NODES_TABLE} ({cst.TASK_ID}, {cst.HOTKEY}, {cst.NETUID})
                         SELECT $1, nodes.{cst.HOTKEY}, $3
@@ -150,6 +144,10 @@ async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
                     await connection.execute(query, updated_task.task_id, updated_task.assigned_miners, NETUID)
 
     return await get_task(updated_task.task_id, psql_db)
+
+
+
+
 
 
 async def get_test_set_for_task(task_id: str, psql_db: PSQLDB):

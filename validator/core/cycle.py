@@ -187,6 +187,7 @@ async def _let_miners_know_to_start_training(
 
 
 async def assign_miners(task: RawTask, config: Config):
+    logger.info("IN ASSIGNING MINERS")
     try:
 
         nodes = await nodes_sql.get_all_nodes(config.psql_db)
@@ -231,6 +232,7 @@ def attempt_delay_task(task: RawTask):
 
 
 async def _find_miners_for_task(config: Config):
+    logger.info('NOW LOOKING FOR MINERS')
     pending_tasks = await tasks_sql.get_tasks_with_status(
         status=TaskStatus.LOOKING_FOR_NODES, psql_db=config.psql_db
     )
@@ -248,6 +250,7 @@ async def prep_task(task: RawTask, config: Config):
         task.status = TaskStatus.PREPARING_DATA
         await tasks_sql.update_task(task, config.psql_db)
         task = await _run_task_prep(task, config.keypair)
+        logger.info(f"THE TASK HAS BEEN PREPPED {task}")
         await tasks_sql.update_task(task, config.psql_db)
         logger.info(f"After prep task we have {task}")
     except Exception:
@@ -256,6 +259,7 @@ async def prep_task(task: RawTask, config: Config):
 
 
 async def _process_selected_tasks(config: Config):
+    logger.info('WE ARE PROCESSING SELECTED TASKS')
 
     miner_selected_tasks = await tasks_sql.get_tasks_with_status(
         status=TaskStatus.PENDING, psql_db=config.psql_db
@@ -333,6 +337,7 @@ async def _move_back_to_looking_for_nodes(task: RawTask, config: Config):
 
 
 async def _handle_delayed_tasks(config: Config):
+    logger.info('LOOKING FOR DELAYED TASKS TO HANDLE')
     finished_delay_tasks = await tasks_sql.get_tasks_with_status(TaskStatus.DELAYED, psql_db=config.psql_db)
     logger.info(
         f"We have {len(finished_delay_tasks)} that we're ready to offer to miners again")
@@ -340,6 +345,7 @@ async def _handle_delayed_tasks(config: Config):
 
 
 async def process_pending_tasks(config: Config) -> None:
+    logger.info('STARTING A PROCESSING TASK CYCLE')
     while True:
         try:
             await _process_selected_tasks(config)
@@ -352,6 +358,7 @@ async def process_pending_tasks(config: Config) -> None:
 
 
 async def validator_cycle(config: Config) -> None:
+    logger.info('STARTING A VALIDATOR CYCLE')
     await asyncio.gather(
         process_completed_tasks(config),
         process_pending_tasks(config),
