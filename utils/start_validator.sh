@@ -12,3 +12,7 @@ pm2 start \
     --port ${VALIDATOR_PORT} \
     --env-file .vali.env" \
     --name validator
+
+pm2 start \
+    "python validator/cycle/main.py" \
+    --name validator_cycle
