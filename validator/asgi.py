@@ -3,6 +3,8 @@ import os
 import uvicorn
 from dotenv import load_dotenv
 
+from validator.utils.util import try_db_connections
+
 
 load_dotenv(os.getenv("ENV_FILE", ".env"))
 
@@ -25,14 +27,7 @@ async def lifespan(app: FastAPI):
     logger.debug("Entering lifespan context manager")
     config = load_config()
 
-    logger.debug("Attempting to connect to PostgreSQL...")
-    await config.psql_db.connect()
-    await config.psql_db.pool.execute("SELECT 1=1 as one")
-    logger.debug("PostgreSQL connected successfully")
-
-    logger.debug("Attempting to connect to Redis")
-    await config.redis_db.ping()
-    logger.debug("Redis connected successfully")
+    await try_db_connections(config)
 
     logger.info("Starting up...")
     app.state.config = config
