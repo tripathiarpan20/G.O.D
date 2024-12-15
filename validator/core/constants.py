@@ -48,7 +48,7 @@ GET_ALL_MODELS_ID = "model_id"
 
 
 HOW_MANY_TASKS_MINIMAL_AT_THE_SAME_TIME = 5
-NUMBER_OF_MINUTES_BETWEEN_SYNTH_TASK_CHECK = 30
+NUMBER_OF_MINUTES_BETWEEN_SYNTH_TASK_CHECK = 60
 
 
 # data stuff
@@ -74,10 +74,10 @@ OUTPUT_REFORMULATION_PROBABILITY = 0.5
 
 # Task Stuff
 MINIMUM_MINER_POOL = 1
-MIN_IDEAL_NUM_MINERS_IN_POOL = 8
-MAX_IDEAL_NUM_MINERS_IN_POOL = 16
+MIN_IDEAL_NUM_MINERS_IN_POOL = 10
+MAX_IDEAL_NUM_MINERS_IN_POOL = 20
 MIN_COMPETITION_HOURS = 1
-MAX_COMPETITION_HOURS = 3
+MAX_COMPETITION_HOURS = 5
 TASK_TIME_DELAY = 15  # number of minutes we wait to retry an organic request
 # how many times in total do we attempt to delay an organic request looking for miners
 MAX_DELAY_TIMES = 6
@@ -86,11 +86,11 @@ MAX_DELAY_TIMES = 6
 # scoring stuff
 SOFTMAX_TEMPERATURE = 0.5
 TEST_SCORE_WEIGHTING = 0.7  # synth will be (1 - this)
-TARGET_SCORE_RATIO = 1
-MIN_TASK_SCORE = -0.02  # very tiny punishment while miners find their feet
+TARGET_SCORE_RATIO = 1.05
+MIN_TASK_SCORE = -0.01  # very tiny punishment while miners find their feet
 MAX_TASK_SCORE = 1.6
 TASK_SCORE_THRESHOLD = 0.9
-REWEIGHTING_EXP = 0.7  # how much of a drop off from leader
+REWEIGHTING_EXP = 0.5  # how much of a drop off from leader
 SCORING_WINDOW = 7  # number of days over which we score
 
 # processing stuff
