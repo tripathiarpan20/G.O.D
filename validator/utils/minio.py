@@ -11,6 +11,7 @@ logger = get_logger(__name__)
 
 # NOTE: This all needs rewriting to be honest
 # TODO: TODO: TODO: BIN ALL OF THIS PLZ :PRAY:
+## WW: Looks like the best GPT code to date
 
 class AsyncMinioClient:
     def __init__(self, endpoint, access_key, secret_key, secure=True, region="eu-north-1"):

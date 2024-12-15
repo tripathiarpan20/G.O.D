@@ -31,7 +31,6 @@ def _get_total_dataset_size(repo_name: str) -> int:
 
 
 async def _run_task_prep(task: RawTask, keypair: Keypair) -> RawTask:
-    logger.info(f"The task coming into task prep is {task}")
     columns_to_sample = [
         i for i in [task.field_system, task.field_instruction, task.field_input, task.field_output] if i is not None
     ]
@@ -49,7 +48,7 @@ async def _run_task_prep(task: RawTask, keypair: Keypair) -> RawTask:
 # TODO: Improve by batching these up
 async def _make_offer(node: Node, request: MinerTaskRequest, config: Config) -> MinerTaskResponse:
     response = await process_non_stream_fiber(cst.TASK_OFFER_ENDPOINT, config, node, request.model_dump(), timeout=3)
-    logger.info(f"The response from make offer was {response}")
+    logger.info(f"The response from make offer for node {node.node_id} was {response}")
     if response is None:
         response = {}
     return MinerTaskResponse(
@@ -148,7 +147,6 @@ async def _let_miners_know_to_start_training(task: RawTask, nodes: list[Node], c
 
 
 async def _find_and_select_miners_for_task(task: RawTask, config: Config):
-    logger.info("IN ASSIGNING MINERS")
     try:
         nodes = await nodes_sql.get_all_nodes(config.psql_db)
         task = await _select_miner_pool_and_add_to_task(task, nodes, config)
@@ -190,16 +188,12 @@ async def _find_miners_for_task(config: Config):
 
 
 async def _prep_task(task: RawTask, config: Config):
-    logger.info("Task is being prepped ready for miners")
     try:
         task.status = TaskStatus.PREPARING_DATA
-        logger.debug(f"Updating task {task.task_id} status to {task.status}")
         await tasks_sql.update_task(task, config.psql_db)
-        logger.debug(f"Task {task.task_id} status updated to {task.status}")
         task = await _run_task_prep(task, config.keypair)
         logger.info(f"THE TASK HAS BEEN PREPPED {task}")
         await tasks_sql.update_task(task, config.psql_db)
-        logger.info(f"After prep task we have {task}")
     except Exception:
         task.status = TaskStatus.PREP_TASK_FAILURE
         await tasks_sql.update_task(task, config.psql_db)
@@ -254,14 +248,12 @@ async def _move_back_to_looking_for_nodes(task: RawTask, config: Config):
 
 
 async def _handle_delayed_tasks(config: Config):
-    logger.info("LOOKING FOR DELAYED TASKS TO HANDLE")
     finished_delay_tasks = await tasks_sql.get_tasks_with_status(TaskStatus.DELAYED, psql_db=config.psql_db)
     logger.info(f"We have {len(finished_delay_tasks)} that we're ready to offer to miners again")
     await asyncio.gather(*[_move_back_to_looking_for_nodes(task, config) for task in finished_delay_tasks])
 
 
 async def process_pending_tasks(config: Config) -> None:
-    logger.info("STARTING A PROCESSING TASK CYCLE")
     while True:
         try:
             await _processing_pending_tasks(config)
