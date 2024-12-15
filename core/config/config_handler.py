@@ -39,13 +39,8 @@ def create_dataset_entry(
 
 
 def update_flash_attention(config: dict, model: str):
-    if any(model.lower() in model_name.lower() for model_name in cst.MODELS_WITH_FLASH_ATTENTION) and not any(
-        model.lower() in model_name.lower() for model_name in cst.LLAMA_MODELS_WO_FLASH_ATTENTION
-    ):
-        config["flash_attention"] = True
-    else:
-        config["flash_attention"] = False
-
+    # You might want to make this model-dependent
+    config["flash_attention"] = False
     return config
 
 
