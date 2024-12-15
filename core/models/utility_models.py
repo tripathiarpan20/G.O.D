@@ -63,6 +63,7 @@ class Job(BaseModel):
     file_format: FileFormat
     status: JobStatus = JobStatus.QUEUED
     error_message: str | None = None
+    num_params: int | None = None
 
 
 class Role(str, Enum):
