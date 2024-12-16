@@ -41,17 +41,17 @@ async def upload_json_to_minio(file_path: str, bucket_name: str, object_name: st
 async def load_dataset_from_s3(dataset_url: str) -> Dataset | DatasetDict:
     """Load a dataset from S3 storage."""
     try:
-        local_file_path = await download_s3_file(dataset_url)
-        # Create temp directory and move file there
-        temp_dir = tempfile.mkdtemp()
-        filename = os.path.basename(local_file_path)
-        new_path = os.path.join(temp_dir, filename)
-        os.rename(local_file_path, new_path)
-        dataset = load_dataset(temp_dir)
-        # Cleanup
-        os.remove(new_path)  # needed to remove the directory
-        os.rmdir(temp_dir)
-        return dataset
+          with tempfile.TemporaryDirectory() as temp_dir:
+            local_file_path = await download_s3_file(dataset_url)
+           
+            filename = os.path.basename(local_file_path)
+            new_path = os.path.join(temp_dir, filename)
+            
+            os.rename(local_file_path, new_path)
+            
+            dataset = load_dataset(temp_dir)
+            
+            return dataset
     except Exception as e:
         logger.exception(f"Failed to load dataset from S3: {e}")
         raise e
