@@ -99,7 +99,7 @@ class NewTaskRequest(BaseModel):
     model_repo: str = Field(..., description="The repository for the model", examples=["Qwen/Qwen2.5-Coder-32B-Instruct"])
 
     hours_to_complete: int = Field(..., description="The number of hours to complete the task", examples=[1])
-
+    file_format: FileFormat = FileFormat.HF
     format: None = None
     no_input_format: None = None
 

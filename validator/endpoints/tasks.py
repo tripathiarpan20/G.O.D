@@ -73,6 +73,7 @@ async def create_task(
         field_input=request.field_input,
         field_output=request.field_output,
         format=request.format,
+        file_format=request.file_format,
         is_organic=True,
         no_input_format=request.no_input_format,
         status=TaskStatus.PENDING,

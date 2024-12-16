@@ -8,6 +8,8 @@ from uuid import uuid4
 from pydantic import BaseModel
 from pydantic import Field
 
+from core.models.utility_models import FileFormat
+
 
 class TokenizerConfig(BaseModel):
     bos_token: str | None = None
@@ -65,6 +67,7 @@ class RawTask(BaseModel):
     task_id: UUID | None = None
     model_id: str
     ds_id: str
+    file_format: FileFormat
     status: str
     account_id: UUID
     times_delayed: int = 0
@@ -81,7 +84,6 @@ class RawTask(BaseModel):
     training_data: str | None = None
     assigned_miners: list[int] | None = None
     miner_scores: list[float] | None = None
-
     created_at: datetime
     next_delay_at: datetime | None = None
     updated_at: datetime | None = None
