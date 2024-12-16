@@ -1,17 +1,20 @@
+import asyncio
 import io
 import json
 import os
 import tarfile
-import asyncio
 from typing import Union
+
 import docker
 from fiber.logging_utils import get_logger
+
 from core import constants as cst
 from core.docker_utils import stream_logs
 from core.models.payload_models import EvaluationResult
 from core.models.utility_models import CustomDatasetType
 from core.models.utility_models import DatasetType
 from core.models.utility_models import FileFormat
+
 
 logger = get_logger(__name__)
 

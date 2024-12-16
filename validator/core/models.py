@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-
 from uuid import UUID
 from uuid import uuid4
 
@@ -23,6 +22,8 @@ class ModelConfig(BaseModel):
     architectures: list[str]
     model_type: str
     tokenizer_config: TokenizerConfig
+
+    model_config = {"protected_namespaces": ()}
 
 
 class DatasetData(BaseModel):
@@ -56,37 +57,48 @@ class ModelData(BaseModel):
     config: dict
     parameter_count: int | None = None
 
+    model_config = {"protected_namespaces": ()}
 
-class Task(BaseModel):
+
+class RawTask(BaseModel):
     is_organic: bool
     task_id: UUID | None = None
     model_id: str
     ds_id: str
-    input: str | None = None
     status: str
-    system: str | None = None
-    instruction: str | None = None
-    output: str | None = None
+    account_id: UUID
+    times_delayed: int = 0
+    hours_to_complete: int
+    field_system: str | None = None
+    field_instruction: str
+    field_input: str | None = None
+    field_output: str | None = None
     format: str | None = None
     no_input_format: str | None = None
+    system_format: None = None  # NOTE: Needs updating to be optional once we accept it
     test_data: str | None = None
     synthetic_data: str | None = None
     training_data: str | None = None
     assigned_miners: list[int] | None = None
     miner_scores: list[float] | None = None
-    created_timestamp: datetime | None = None
-    delay_timestamp: datetime | None = None
-    delay_times: int | None = 0
-    updated_timestamp: datetime | None = None
-    started_timestamp: datetime | None = None
-    end_timestamp: datetime | None = None
-    completed_timestamp: datetime | None = None
-    hours_to_complete: int
-    best_submission_repo: str | None = None
-    user_id: str | None = None
+
+    created_at: datetime
+    next_delay_at: datetime | None = None
+    updated_at: datetime | None = None
+    started_at: datetime | None = None
+    termination_at: datetime | None = None
+    completed_at: datetime | None = None
+
+
 
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}
+
+
+# NOTE: As time goes on we will expand this class to be more of a 'submmited task'?
+# Might wanna rename this some more
+class Task(RawTask):
+    trained_model_repository: str | None = None
 
 
 class PeriodScore(BaseModel):
@@ -104,7 +116,7 @@ class TaskNode(BaseModel):
 
 
 class TaskResults(BaseModel):
-    task: Task
+    task: RawTask
     node_scores: list[TaskNode]
 
 
@@ -168,17 +180,15 @@ class NodeStats(BaseModel):
     model_metrics: ModelMetrics
 
 
+    model_config = {"protected_namespaces": ()}
+
+
 class AllNodeStats(BaseModel):
     daily: NodeStats
     three_day: NodeStats
     weekly: NodeStats
     monthly: NodeStats
     all_time: NodeStats
-
-
-class LeaderboardRow(BaseModel):
-    hotkey: str
-    stats: AllNodeStats
 
 
 class DatasetUrls(BaseModel):
@@ -200,7 +210,7 @@ class DatasetJsons(BaseModel):
 
     def to_json_strings(self) -> dict[str, str]:
         return {
-            'train_data': json.dumps(self.train_data),
-            'test_data': json.dumps(self.test_data),
-            'synthetic_data': json.dumps(self.synthetic_data) if self.synthetic_data else ""
+            "train_data": json.dumps(self.train_data),
+            "test_data": json.dumps(self.test_data),
+            "synthetic_data": json.dumps(self.synthetic_data) if self.synthetic_data else "",
         }

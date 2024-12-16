@@ -22,9 +22,7 @@ cd G.O.D
 1. Install system dependencies (Ubuntu 24.04 LTS):
 
 ```bash
-sudo -E ./bootstrap.sh
-source $HOME/.bashrc
-source $HOME/.venv/bin/activate
+task bootstrap
 ```
 
 2. Get your key onto the VM:
@@ -34,7 +32,7 @@ You know how to do this, don't you ;)
 3. Create and set up the `.vali.env` file:
 
 ```bash
-python -m core.create_config
+task config
 ```
 
 Make sure the VALIDATOR_PORT is not being used by anything else, and is exposed in your firewall settings.
