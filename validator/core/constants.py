@@ -29,12 +29,13 @@ START_TRAINING_ENDPOINT = "/start_training/"
 TASK_OFFER_ENDPOINT = "/task_offer/"
 SUBMISSION_ENDPOINT = "/get_latest_model_submission/"
 
-
-PROD_CONTENT_BASE_URL = "https://content.gradients.io"
+# to update when live
+#PROD_CONTENT_BASE_URL = "https://content.gradients.io"
 DEV_CONTENT_BASE_URL = "https://dev.content.gradients.io"
+PROD_CONTENT_BASE_URL = "https://dev.content.gradients.io"
 
 # 241 is testnet
-CONTENT_BASE_URL = DEV_CONTENT_BASE_URL if NETUID == 241 else PROD_CONTENT_BASE_URL
+CONTENT_BASE_URL = DEV_CONTENT_BASE_URL # if NETUID == 241 else PROD_CONTENT_BASE_URL
 
 GET_RANDOM_DATASETS_ENDPOINT = f"{CONTENT_BASE_URL}/datasets/random"
 GET_RANDOM_MODELS_ENDPOINT = f"{CONTENT_BASE_URL}/models/random"
