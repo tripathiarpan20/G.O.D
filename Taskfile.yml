@@ -45,7 +45,8 @@ tasks:
 
   validator:
     cmds:
-      - docker compose --env-file .vali.env up -d --build --remove-orphans
+      - docker compose --env-file .vali.env down grafana -v
+      - docker compose --env-file .vali.env up -d --build --remove-orphans grafana
       - docker compose --env-file .vali.env -f docker-compose.yml run dbmate --wait up
       - ./utils/start_validator.sh
 
