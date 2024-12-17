@@ -1,11 +1,1 @@
 git+https://github.com/rayonlabs/fiber
-opentelemetry-distro==0.47b0
-opentelemetry-exporter-otlp-proto-http==1.26.0
-opentelemetry-instrumentation-asgi==0.47b0
-opentelemetry-instrumentation-asyncio==0.47b0
-opentelemetry-instrumentation-asyncpg==0.47b0
-opentelemetry-instrumentation-fastapi==0.47b0
-opentelemetry-instrumentation-httpx==0.47b0
-opentelemetry-instrumentation-logging==0.47b0
-opentelemetry-instrumentation-redis==0.47b0
-opentelemetry-instrumentation-system-metrics==0.47b0
