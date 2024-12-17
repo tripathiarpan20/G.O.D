@@ -24,7 +24,7 @@ pm2 start \
     --logs_exporter otlp \
     --traces_exporter none \
     --metrics_exporter otlp \
-    --service_name query_node \
+    --service_name validator \
     uvicorn \
     --factory validator.asgi:factory \
     --host 0.0.0.0 \

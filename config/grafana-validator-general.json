@@ -50,7 +50,7 @@
             "uid": "P8E80F9AEF21F6940"
           },
           "editorMode": "builder",
-          "expr": "{service_name=~\"main\"} | label_format level=detected_level | line_format `{{.service_name }} - {{__line__}}`",
+          "expr": "{service_name=~\"validator|validator_cycle\"} | label_format level=detected_level | line_format `{{.service_name }} - {{__line__}}`",
           "legendFormat": "",
           "queryType": "range",
           "refId": "A"
