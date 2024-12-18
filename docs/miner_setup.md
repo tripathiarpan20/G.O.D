@@ -25,13 +25,7 @@ This guide will walk you through the process of setting up and running a miner f
     source $HOME/.bashrc
     source $HOME/.venv/bin/activate
     ```
-
-2. Install the python packages:
-
-```bash
-task install
-```
-
+    
 **FOR DEV**
 ```bash
 pip install -e '.[dev]'

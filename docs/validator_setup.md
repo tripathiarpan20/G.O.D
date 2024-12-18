@@ -37,12 +37,6 @@ task config
 
 Make sure the VALIDATOR_PORT is not being used by anything else, and is exposed in your firewall settings.
 
-4. Install the dependencies:
-
-```bash
-task install
-```
-
 **FOR DEV**
 ```bash
 pip install -e '.[dev]'
