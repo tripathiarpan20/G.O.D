@@ -22,6 +22,10 @@ services:
     restart: always
     volumes:
       - ./config/otel-config.yaml:/etc/otelcol-contrib/config.yaml
+    networks:
+      - otel_network
+    ports:
+      - "127.0.0.1:4317:4317"
 
   tempo-init:
     scale: 0
@@ -76,3 +80,7 @@ volumes:
   tempo:
   loki:
   prometheus:
+
+networks:
+  otel_network:
+    external: true
