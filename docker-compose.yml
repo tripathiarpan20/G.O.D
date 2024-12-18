@@ -82,6 +82,7 @@ services:
     entrypoint: ["opentelemetry-instrument", "--logs_exporter", "otlp", "--traces_exporter", "none", "--metrics_exporter", "otlp", "--service_name", "validator_cycle", "python", "-u", "-m", "validator.cycle.main"]
     volumes:
       - ${HOME}/.bittensor/wallets:/root/.bittensor/wallets
+      - /var/run/docker.sock:/var/run/docker.sock  # mounting Docker socket
     env_file:
       - .vali.env
     networks:
