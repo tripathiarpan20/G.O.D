@@ -25,7 +25,7 @@ RUN pip install -e .
 
 FROM core AS validator_cycle
 
-WORKDIR /app/validator/cycle
+WORKDIR /app
 
 ENV PYTHONPATH="${PYTHONPATH}:/app/validator/cycle"
 
