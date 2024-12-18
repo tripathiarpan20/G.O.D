@@ -16,7 +16,7 @@ exporters:
       insecure: true
 
   prometheus:
-     endpoint: http://prometheus:9090
+    endpoint: 0.0.0.0:9090
 
 service:
   pipelines:
