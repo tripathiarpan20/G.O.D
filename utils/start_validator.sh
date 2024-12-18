@@ -19,7 +19,7 @@ export OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED="true"
 export OTEL_PYTHON_LOG_CORRELATION="true"
 
 # Start the validator service using opentelemetry-instrument with combined env vars
-pm2 start \
+pm2 start --network host\
     "opentelemetry-instrument \
     --logs_exporter otlp \
     --traces_exporter none \
@@ -33,7 +33,7 @@ pm2 start \
     --name validator
 
 # Start the validator_cycle service using opentelemetry-instrument
-pm2 start \
+pm2 start --network host\
     "opentelemetry-instrument \
     --logs_exporter otlp \
     --traces_exporter none \
