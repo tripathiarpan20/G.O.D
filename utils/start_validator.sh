@@ -12,13 +12,12 @@ set -a # Automatically export all variables
 source .vali.env
 set +a # Stop automatic export
 
-# Define additional OTEL environment variables
-export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
-export OTEL_EXPORTER_OTLP_ENDPOINT="http://127.0.0.1:4317"
-export OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED="true"
-export OTEL_PYTHON_LOG_CORRELATION="true"
-
 # Start the validator service using opentelemetry-instrument with combined env vars
+
+OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf" \
+OTEL_EXPORTER_OTLP_ENDPOINT="http://127.0.0.1:4317" \
+OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED="true" \
+OTEL_PYTHON_LOG_CORRELATION="true" \
 pm2 start \
     "opentelemetry-instrument \
     --logs_exporter otlp \
@@ -33,6 +32,10 @@ pm2 start \
     --name validator
 
 # Start the validator_cycle service using opentelemetry-instrument
+OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf" \
+OTEL_EXPORTER_OTLP_ENDPOINT="http://127.0.0.1:4317" \
+OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED="true" \
+OTEL_PYTHON_LOG_CORRELATION="true" \
 pm2 start \
     "opentelemetry-instrument \
     --logs_exporter otlp \
