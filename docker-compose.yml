@@ -11,6 +11,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - postgres_network
     ports:
       - "127.0.0.1:5432:5432"
     env_file:
@@ -26,6 +28,8 @@ services:
         condition: service_healthy
     env_file:
       - .vali.env
+    networks:
+      - postgres_network
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgresql:5432/${POSTGRES_DB}?sslmode=disable
 
@@ -57,11 +61,18 @@ services:
       - ${HOME}/.bittensor/wallets:/root/.bittensor/wallets
     env_file:
       - .vali.env
+    networks:
+      - postgres_network
     environment:
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
       OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
       OTEL_PYTHON_LOG_CORRELATION: "true"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
       ENV: ${ENV}
     deploy:
       restart_policy:
@@ -83,6 +94,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock  # mounting Docker socket
     env_file:
       - .vali.env
+    networks:
+      - postgres_network
     environment:
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
