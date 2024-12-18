@@ -11,8 +11,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - postgres_network
     ports:
       - "127.0.0.1:5432:5432"
     env_file:
@@ -28,8 +26,6 @@ services:
         condition: service_healthy
     env_file:
       - .vali.env
-    networks:
-      - postgres_network
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgresql:5432/${POSTGRES_DB}?sslmode=disable
 
@@ -111,5 +107,4 @@ volumes:
 
 
 networks:
-  postgres_network:
   redis_network:
