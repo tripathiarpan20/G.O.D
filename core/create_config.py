@@ -107,7 +107,7 @@ def generate_validator_config(dev: bool = False) -> Dict[str, Any]:
     postgres_password = generate_secure_password(
     ) if not postgres_password else postgres_password
     postgres_db = "god-db"
-    postgres_host = "localhost"
+    postgres_host = "postgresql"
     postgres_port = "5432"
 
     validator_port = input(
