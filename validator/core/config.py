@@ -57,7 +57,7 @@ def load_config() -> Config:
         else:
             netuid = int(netuid)
 
-        redis_host = "localhost"
+        redis_host = "redis"
 
         refresh_nodes: bool = os.getenv("REFRESH_NODES", "true").lower() == "true"
         if refresh_nodes:
