@@ -22,9 +22,8 @@ services:
     restart: always
     volumes:
       - ./config/otel-config.yaml:/etc/otelcol-contrib/config.yaml
-    network_mode: "host"
     ports:
-      - "127.0.0.1:4317:4317"
+      - "4317:4317"
 
   tempo-init:
     scale: 0
@@ -59,7 +58,6 @@ services:
     volumes:
       - loki:/loki
       - ./config/loki-config.yaml:/etc/loki/local-config.yaml
-    network_mode: "host"
 
   prometheus:
     container_name: god-prometheus
