@@ -115,4 +115,5 @@ volumes:
 
 
 networks:
+  postgres_network:
   redis_network:
