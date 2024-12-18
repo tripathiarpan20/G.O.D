@@ -49,6 +49,7 @@ tasks:
       - docker compose --env-file .vali.env -f docker-compose.yml up -d --build --remove-orphans
       - docker compose --env-file .vali.env -f docker-compose.yml down grafana -v
       - docker compose --env-file .vali.env -f docker-compose.yml up grafana -d
+      - ./utils/start_validator.sh
 
   postgres:
     cmds:

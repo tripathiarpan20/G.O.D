@@ -41,56 +41,6 @@ services:
       restart_policy:
         condition: on-failure
 
-  validator:
-    container_name: validator
-    build:
-      context: .
-      dockerfile: dockerfiles/compose_validator.dockerfile
-    depends_on:
-      dbmate:
-        condition: service_completed_successfully
-      redis:
-        condition: service_started
-    entrypoint: ["opentelemetry-instrument", "--logs_exporter", "otlp", "--traces_exporter", "none", "--metrics_exporter", "otlp", "--service_name", "validator",
-                "uvicorn", "--factory", "validator.asgi:factory",\
-                "--host", "0.0.0.0",
-                "--port", "${VALIDATOR_PORT}",
-                "--env-file", ".vali.env"
-    ]
-    env_file:
-      - .vali.env
-    environment:
-      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
-      OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
-      OTEL_PYTHON_LOG_CORRELATION: "true"
-      ENV: ${ENV}
-    deploy:
-      restart_policy:
-        condition: on-failure
-
-  validator_cycle:
-    container_name: validator_cycle
-    build:
-      context: .
-      dockerfile: dockerfiles/compose_validator_cycle.dockerfile
-    depends_on:
-      dbmate:
-        condition: service_completed_successfully
-      redis:
-        condition: service_started
-    entrypoint: ["opentelemetry-instrument", "--logs_exporter", "otlp", "--traces_exporter", "none", "--metrics_exporter", "otlp", "--service_name", "validator_cycle", "python", "-u", "-m", "validator.cycle.main"]
-    env_file:
-      - .vali.env
-    environment:
-      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
-      OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
-      OTEL_PYTHON_LOG_CORRELATION: "true"
-      ENV: ${ENV}
-    deploy:
-      restart_policy:
-        condition: on-failure
 volumes:
   postgres_data:
 
