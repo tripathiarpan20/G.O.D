@@ -41,8 +41,6 @@ tasks:
   autoupdates:
     cmds:
       - pm2 delete autoupdater || true
-      - pm2 delete validator || true
-      - pm2 delete validator_cycle || true
       - pm2 start "python utils/run_validator_auto_update.py" --name autoupdater
 
   validator:
