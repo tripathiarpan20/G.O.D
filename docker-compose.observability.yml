@@ -83,4 +83,4 @@ volumes:
 
 networks:
   otel_network:
-    external: true
+    network_mode: "host"
