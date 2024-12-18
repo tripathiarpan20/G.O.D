@@ -59,6 +59,7 @@ services:
     volumes:
       - loki:/loki
       - ./config/loki-config.yaml:/etc/loki/local-config.yaml
+    network_mode: "host"
 
   prometheus:
     container_name: god-prometheus
