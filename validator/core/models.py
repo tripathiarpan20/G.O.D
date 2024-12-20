@@ -89,8 +89,6 @@ class RawTask(BaseModel):
     termination_at: datetime | None = None
     completed_at: datetime | None = None
 
-
-
     # Turn off protected namespace for model
     model_config = {"protected_namespaces": ()}
 
@@ -179,7 +177,6 @@ class NodeStats(BaseModel):
     workload_metrics: WorkloadMetrics
     model_metrics: ModelMetrics
 
-
     model_config = {"protected_namespaces": ()}
 
 
@@ -214,3 +211,9 @@ class DatasetJsons(BaseModel):
             "test_data": json.dumps(self.test_data),
             "synthetic_data": json.dumps(self.synthetic_data) if self.synthetic_data else "",
         }
+
+
+class TrainingTaskStatus(BaseModel):
+    number_of_jobs_training: int
+    next_training_end: datetime | None
+    job_can_be_made: bool = True

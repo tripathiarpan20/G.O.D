@@ -29,13 +29,13 @@ START_TRAINING_ENDPOINT = "/start_training/"
 TASK_OFFER_ENDPOINT = "/task_offer/"
 SUBMISSION_ENDPOINT = "/get_latest_model_submission/"
 
-# to update when live
-#PROD_CONTENT_BASE_URL = "https://content.gradients.io"
+# TODO update when live
 DEV_CONTENT_BASE_URL = "https://dev.content.gradients.io"
 PROD_CONTENT_BASE_URL = "https://dev.content.gradients.io"
 
+
 # 241 is testnet
-CONTENT_BASE_URL = DEV_CONTENT_BASE_URL # if NETUID == 241 else PROD_CONTENT_BASE_URL
+CONTENT_BASE_URL = DEV_CONTENT_BASE_URL if NETUID == 241 else PROD_CONTENT_BASE_URL
 
 GET_RANDOM_DATASETS_ENDPOINT = f"{CONTENT_BASE_URL}/datasets/random"
 GET_RANDOM_MODELS_ENDPOINT = f"{CONTENT_BASE_URL}/models/random"
@@ -46,10 +46,9 @@ GET_ALL_DATASETS_ID = "dataset_id"
 GET_ALL_MODELS_ID = "model_id"
 
 # task stuff
+HOW_MANY_TASKS_ALLOWED_AT_ONCE = 4
+NUMBER_OF_MINUTES_BETWEEN_SYNTH_TASK_CHECK = 30
 
-
-HOW_MANY_TASKS_MINIMAL_AT_THE_SAME_TIME = 5
-NUMBER_OF_MINUTES_BETWEEN_SYNTH_TASK_CHECK = 60
 
 
 # data stuff
@@ -60,10 +59,12 @@ MAX_SYNTH_DATA_POINTS = 100
 ADDITIONAL_SYNTH_DATA_PERCENTAGE = 1.0  # same size as training set
 
 # synth stuff
-SYNTH_GEN_BATCH_SIZE = 5
+SYNTH_GEN_BATCH_SIZE = 10
 SYNTH_MODEL_TEMPERATURE = 0.4
 CONTAINER_EVAL_RESULTS_PATH = "/aplp/evaluation_results.json"
-GPU_SERVER = os.getenv("GPU_SERVER")
+_gpu_ids = os.getenv("GPU_IDS", "").strip()
+GPU_IDS = [int(id) for id in _gpu_ids.split(",")] if _gpu_ids else [0]
+
 
 SYNTH_MODEL = "chat-llama-3-2-3b"
 PROMPT_GEN_ENDPOINT = "https://api.nineteen.ai/v1/chat/completions"
@@ -75,6 +76,7 @@ OUTPUT_REFORMULATION_PROBABILITY = 0.5
 
 # Task Stuff
 MINIMUM_MINER_POOL = 1
+
 MIN_IDEAL_NUM_MINERS_IN_POOL = 3
 MAX_IDEAL_NUM_MINERS_IN_POOL = 8
 MIN_COMPETITION_HOURS = 1
@@ -100,3 +102,6 @@ MAX_CONCURRENT_TASK_PREPS = 3
 MAX_CONCURRENT_TRAININGS = 10
 MAX_CONCURRENT_EVALUATIONS = 1
 MAX_TIME_DELAY_TO_FIND_MINERS = 1  # hours
+MAX_CONCURRENT_JOBS = 8
+
+LOGPATH = "/root/G.O.D/validator/logs"

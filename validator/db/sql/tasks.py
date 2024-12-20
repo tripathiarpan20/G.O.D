@@ -10,7 +10,7 @@ from fiber.logging_utils import get_logger
 import validator.db.constants as cst
 from core.constants import NETUID
 from core.models.utility_models import TaskStatus
-from validator.core.models import RawTask
+from validator.core.models import RawTask, TrainingTaskStatus
 from validator.core.models import Task
 from validator.db.database import PSQLDB
 
@@ -96,6 +96,8 @@ async def assign_node_to_task(task_id: str, node: Node, psql_db: PSQLDB) -> None
             VALUES ($1, $2, $3)
         """
         await connection.execute(query, task_id, node.hotkey, NETUID)
+
+
 async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
     existing_task = await get_task(updated_task.task_id, psql_db)
     if not existing_task:
@@ -145,10 +147,6 @@ async def update_task(updated_task: RawTask, psql_db: PSQLDB) -> RawTask:
     return await get_task(updated_task.task_id, psql_db)
 
 
-
-
-
-
 async def get_test_set_for_task(task_id: str, psql_db: PSQLDB):
     """Get test data for a task"""
     async with await psql_db.connection() as connection:
@@ -171,21 +169,37 @@ async def get_synthetic_set_for_task(task_id: str, psql_db: PSQLDB):
         return await connection.fetchval(query, task_id)
 
 
-async def get_tasks_ready_to_evaluate(psql_db: PSQLDB) -> List[RawTask]:
-    """Get all tasks ready for evaluation"""
+async def get_training_tasks_stats(psql_db: PSQLDB) -> TrainingTaskStatus:
     async with await psql_db.connection() as connection:
         connection: Connection
         query = f"""
-            SELECT * FROM {cst.TASKS_TABLE}
-            WHERE {cst.STATUS} = 'training'
-            AND NOW() AT TIME ZONE 'UTC' > {cst.TERMINATION_AT} AT TIME ZONE 'UTC'
-            AND EXISTS (
-                SELECT 1 FROM {cst.TASK_NODES_TABLE}
-                WHERE {cst.TASK_ID} = {cst.TASK_ID}
-                AND {cst.NETUID} = $1
-            )
+            SELECT
+                COUNT(*) as number_of_jobs_training,
+                MIN(termination_at) as next_training_end
+            FROM {cst.TASKS_TABLE}
+            WHERE {cst.STATUS} = $1
         """
-        rows = await connection.fetch(query, NETUID)
+        row = await connection.fetchrow(query, TaskStatus.TRAINING.value)
+        return TrainingTaskStatus(
+            number_of_jobs_training=row["number_of_jobs_training"], next_training_end=row["next_training_end"]
+        )
+
+
+async def get_tasks_ready_to_evaluate(psql_db: PSQLDB) -> List[RawTask]:
+    async with await psql_db.connection() as connection:
+        connection: Connection
+        query = """
+            SELECT * FROM tasks t
+            WHERE status IN ($1, $2)
+            AND NOW() > termination_at
+            AND EXISTS (
+                SELECT 1 FROM task_nodes tn
+                WHERE tn.task_id = t.task_id
+                AND tn.netuid = $3
+            )
+            ORDER BY termination_at ASC
+        """
+        rows = await connection.fetch(query, TaskStatus.TRAINING.value, TaskStatus.PREEVALUATION.value, NETUID)
         return [RawTask(**dict(row)) for row in rows]
 
 

@@ -24,11 +24,10 @@ OUTPUT_DIR = "./core/outputs/"
 
 CONFIG_TEMPLATE_PATH = CONFIG_DIR + "base.yml"
 
-BUCKET_NAME = os.getenv('S3_BUCKET_NAME')
+BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 WANDB_TOKEN = os.getenv("WANDB_TOKEN")
 
 REPO_ID = os.getenv("REPO_ID")
 CUSTOM_DATASET_TYPE = "custom"
-

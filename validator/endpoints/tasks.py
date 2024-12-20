@@ -19,9 +19,11 @@ from core.models.utility_models import MinerTaskResult
 from core.models.utility_models import TaskMinerResult
 from core.models.utility_models import TaskStatus
 from validator.core.config import Config
+from validator.core.constants import MAX_CONCURRENT_JOBS
 from validator.core.dependencies import get_api_key
 from validator.core.dependencies import get_config
 from validator.core.models import RawTask
+from validator.core.models import TrainingTaskStatus
 from validator.db.sql import submissions_and_scoring as submissions_and_scoring_sql
 from validator.db.sql import tasks as task_sql
 from validator.db.sql.nodes import get_all_nodes
@@ -34,6 +36,7 @@ TASKS_CREATE_ENDPOINT = "/v1/tasks/create"
 GET_TASKS_BY_ACCOUNT_ENDPOINT = "/v1/tasks/account/{account_id}"
 GET_TASK_DETAILS_ENDPOINT = "/v1/tasks/{task_id}"
 GET_TASKS_RESULTS_ENDPOINT = "/v1/tasks/breakdown/{task_id}"
+GET_NETWORK_STATUS = "/v1/network/status"
 GET_NODE_RESULTS_ENDPOINT = "/v1/tasks/node_results/{hotkey}"
 DELETE_TASK_ENDPOINT = "/v1/tasks/delete/{task_id}"
 LEADERBOARD_ENDPOINT = "/v1/leaderboard"
@@ -60,10 +63,10 @@ async def create_task(
     end_timestamp = current_time + timedelta(hours=request.hours_to_complete)
 
     # if there are any queued jobs that are organic we can't accept any more to avoid overloading the network
-    queued_tasks = await task_sql.get_tasks_with_status(TaskStatus.DELAYED, config.psql_db, include_not_ready_tasks=True)
-    if len(queued_tasks) > 0:
-        logger.info("We already have some queued organic jobs, we can't a accept any more")
-        return NewTaskResponse(success=False, task_id=None)
+    #    queued_tasks = await task_sql.get_tasks_with_status(TaskStatus.DELAYED, config.psql_db, include_not_ready_tasks=True)
+    #    if len(queued_tasks) > 0:
+    #        logger.info("We already have some queued organic jobs, we can't a accept any more")
+    #        return NewTaskResponse(success=False, task_id=None)
 
     task = RawTask(
         model_id=request.model_repo,
@@ -110,7 +113,8 @@ async def get_task_details_by_account(
     page: int = 1,
     config: Config = Depends(get_config),
 ) -> List[TaskDetails]:
-    tasks = await task_sql.get_tasks_by_account_id(config.psql_db, account_id, limit, page)
+    offset = (page - 1) * limit
+    tasks = await task_sql.get_tasks_by_account_id(config.psql_db, account_id, limit, offset)
 
     task_status_responses = [
         TaskDetails(
@@ -197,9 +201,22 @@ async def get_leaderboard(
     return leaderboard_rows
 
 
+async def get_network_status(
+    config: Config = Depends(get_config),
+) -> TrainingTaskStatus:
+    try:
+        logger.debug("IN get network status")
+        training_stats = await task_sql.get_training_tasks_stats(config.psql_db)
+        if training_stats.number_of_jobs_training >= MAX_CONCURRENT_JOBS:
+            training_stats.job_can_be_made = False
+        return training_stats
+    except Exception as e:
+        logger.info(f"There was an issue with getting training status {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 def factory_router() -> APIRouter:
     router = APIRouter(tags=["Gradients On Demand"], dependencies=[Depends(get_api_key)])
-
     router.add_api_route(TASKS_CREATE_ENDPOINT, create_task, methods=["POST"])
     router.add_api_route(GET_TASK_DETAILS_ENDPOINT, get_task_details, methods=["GET"])
     router.add_api_route(DELETE_TASK_ENDPOINT, delete_task, methods=["DELETE"])
@@ -207,5 +224,8 @@ def factory_router() -> APIRouter:
     router.add_api_route(GET_NODE_RESULTS_ENDPOINT, get_node_results, methods=["GET"])
     router.add_api_route(GET_TASKS_BY_ACCOUNT_ENDPOINT, get_task_details_by_account, methods=["GET"])
     router.add_api_route(LEADERBOARD_ENDPOINT, get_leaderboard, methods=["GET"])
-
+    router.add_api_route(GET_NETWORK_STATUS, get_network_status, methods=["GET"])
+    logger.info("Router routes at end of factory:")
+    for route in router.routes:
+        logger.info(f"- {route.path} [{route.methods}]")
     return router
