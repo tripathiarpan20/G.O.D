@@ -7,6 +7,7 @@ from typing import Union
 
 import docker
 from fiber.logging_utils import get_logger
+from pydantic import TypeAdapter
 
 from core import constants as cst
 from core.docker_utils import stream_logs
@@ -20,10 +21,7 @@ logger = get_logger(__name__)
 
 
 async def get_evaluation_results(container):
-    archive_data = await asyncio.to_thread(
-        container.get_archive,
-        cst.CONTAINER_EVAL_RESULTS_PATH
-    )
+    archive_data = await asyncio.to_thread(container.get_archive, cst.CONTAINER_EVAL_RESULTS_PATH)
     tar_stream = archive_data[0]
 
     file_like_object = io.BytesIO()
@@ -49,11 +47,12 @@ async def get_evaluation_results(container):
 
 async def run_evaluation_docker(
     dataset: str,
-    model: str,
+    models: list[str],
     original_model: str,
     dataset_type: Union[DatasetType, CustomDatasetType],
     file_format: FileFormat,
-) -> EvaluationResult:
+    gpu_ids: list[int],
+) -> dict[str, Union[EvaluationResult, Exception]]:
     client = docker.from_env()
 
     if isinstance(dataset_type, DatasetType):
@@ -63,15 +62,19 @@ async def run_evaluation_docker(
     else:
         raise ValueError("Invalid dataset_type provided.")
 
+    dataset_filename = os.path.basename(dataset)
+    dataset_dir = os.path.dirname(os.path.abspath(dataset))
+
     environment = {
-        "DATASET": dataset,
-        "MODEL": model,
+        "DATASET": f"/workspace/input_data/{dataset_filename}",  # Now uses the mounted path
+        "MODELS": ",".join(models),
         "ORIGINAL_MODEL": original_model,
         "DATASET_TYPE": dataset_type_str,
         "FILE_FORMAT": file_format.value,
+        "JOB_ID": "dummy",
     }
+    logger.info(f"Here are the models {models}")
 
-    dataset_dir = os.path.dirname(os.path.abspath(dataset))
     volume_bindings = {
         dataset_dir: {
             "bind": "/workspace/input_data",
@@ -82,11 +85,12 @@ async def run_evaluation_docker(
     async def cleanup_resources():
         try:
             await asyncio.to_thread(client.containers.prune)
-            await asyncio.to_thread(client.images.prune, filters={'dangling': True})
+            await asyncio.to_thread(client.images.prune, filters={"dangling": True})
             await asyncio.to_thread(client.volumes.prune)
             logger.debug("Completed Docker resource cleanup")
         except Exception as e:
             logger.error(f"Cleanup failed: {str(e)}")
+
     try:
         container = await asyncio.to_thread(
             client.containers.run,
@@ -94,23 +98,26 @@ async def run_evaluation_docker(
             environment=environment,
             volumes=volume_bindings,
             runtime="nvidia",
-            device_requests=[
-                docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
-            ],
+            device_requests=[docker.types.DeviceRequest(capabilities=[["gpu"]], device_ids=[str(gid) for gid in gpu_ids])],
             detach=True,
         )
-        log_task = asyncio.create_task(
-            asyncio.to_thread(stream_logs, container))
+        log_task = asyncio.create_task(asyncio.to_thread(stream_logs, container))
         result = await asyncio.to_thread(container.wait)
         log_task.cancel()
 
         if result["StatusCode"] != 0:
-            raise Exception(
-                f"Container exited with status {result['StatusCode']}")
+            raise Exception(f"Container exited with status {result['StatusCode']}")
 
-        eval_results = await get_evaluation_results(container)
+        eval_results_dict = await get_evaluation_results(container)
 
-        return EvaluationResult(**eval_results)
+        processed_results = {}
+        for repo, result in eval_results_dict.items():
+            if isinstance(result, str) and not isinstance(result, dict):
+                processed_results[repo] = Exception(result)
+            else:
+                processed_results[repo] = TypeAdapter(EvaluationResult).validate_python(result)
+
+        return processed_results
 
     except Exception as e:
         logger.error(f"Failed to retrieve evaluation results: {str(e)}")

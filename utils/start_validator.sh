@@ -5,7 +5,9 @@ VALIDATOR_PORT=$(grep VALIDATOR_PORT .vali.env | cut -d '=' -f2)
 
 # Delete old validator services
 pm2 delete validator || true
+pm2 delete validator_api || true
 pm2 delete validator_cycle || true
+pm2 delete weight_setter || true
 
 # Load variables from .vali.env
 set -a # Automatically export all variables
@@ -29,7 +31,7 @@ pm2 start \
     --host 0.0.0.0 \
     --port ${VALIDATOR_PORT} \
     --env-file .vali.env" \
-    --name validator
+    --name validator_api
 
 # Start the validator_cycle service using opentelemetry-instrument
 OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf" \
@@ -44,3 +46,7 @@ pm2 start \
     --service_name validator_cycle \
     python -u -m validator.cycle.main" \
     --name validator_cycle
+
+pm2 start \
+    "python -m validator.core.weight_setting" \
+    --name weight_setter
