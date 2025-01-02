@@ -8,7 +8,6 @@ import torch.nn.functional as F
 import yaml
 from axolotl.utils.data import load_tokenized_prepared_datasets
 from axolotl.utils.dict import DictDefault
-from fiber.logging_utils import get_logger
 from peft import PeftModel
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader
@@ -22,6 +21,7 @@ from core.models.utility_models import DatasetType
 from core.models.utility_models import FileFormat
 from validator.core import constants as cst
 from validator.evaluation.utils import model_is_a_finetune
+from validator.utils.logging import get_logger
 
 
 logger = get_logger(__name__)

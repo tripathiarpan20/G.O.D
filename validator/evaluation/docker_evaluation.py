@@ -6,7 +6,6 @@ import tarfile
 from typing import Union
 
 import docker
-from fiber.logging_utils import get_logger
 from pydantic import TypeAdapter
 
 from core import constants as cst
@@ -15,6 +14,7 @@ from core.models.payload_models import EvaluationResult
 from core.models.utility_models import CustomDatasetType
 from core.models.utility_models import DatasetType
 from core.models.utility_models import FileFormat
+from validator.utils.logging import get_logger
 
 
 logger = get_logger(__name__)

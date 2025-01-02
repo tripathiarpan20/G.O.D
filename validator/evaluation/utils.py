@@ -1,9 +1,10 @@
 import os
 
 from datasets import get_dataset_config_names
-from fiber.logging_utils import get_logger
 from transformers import AutoConfig
 from transformers import AutoModelForCausalLM
+
+from validator.utils.logging import get_logger
 
 
 logger = get_logger(__name__)

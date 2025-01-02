@@ -5,7 +5,6 @@ from datetime import timedelta
 from typing import Any
 from typing import AsyncGenerator
 
-from fiber.logging_utils import get_logger
 from substrateinterface import Keypair
 
 import validator.core.constants as cst
@@ -16,6 +15,7 @@ from validator.core.models import RawTask
 from validator.db.sql.tasks import add_task
 from validator.db.sql.tasks import get_tasks_with_status
 from validator.utils.call_endpoint import call_content_service
+from validator.utils.logging import get_logger
 
 
 logger = get_logger(name="task synth")

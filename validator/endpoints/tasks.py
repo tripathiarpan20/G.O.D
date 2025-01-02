@@ -7,7 +7,6 @@ from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import Query
 from fastapi import Response
-from fiber.logging_utils import get_logger
 
 from core.models.payload_models import AllOfNodeResults
 from core.models.payload_models import LeaderboardRow
@@ -27,6 +26,7 @@ from validator.core.models import RawTask
 from validator.db.sql import submissions_and_scoring as submissions_and_scoring_sql
 from validator.db.sql import tasks as task_sql
 from validator.db.sql.nodes import get_all_nodes
+from validator.utils.logging import get_logger
 
 
 logger = get_logger(__name__)
