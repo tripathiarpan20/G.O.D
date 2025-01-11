@@ -1,5 +1,6 @@
 import argparse
 import os
+import shutil
 import subprocess
 import time
 
@@ -10,6 +11,16 @@ def pull_latest_docker_images():
 
 def should_update_local(local_commit: str, remote_commit: str) -> bool:
     return local_commit != remote_commit
+
+
+def clean_hf_datasets_cache():
+    try:
+        hf_cache_path = os.path.expanduser("~/.cache/huggingface/datasets/")
+        if os.path.exists(hf_cache_path):
+            shutil.rmtree(hf_cache_path)
+            print(f"Cleaned Huggingface datasets cache at {hf_cache_path}")
+    except Exception as e:
+        print(f"Error cleaning Huggingface datasets cache: {e}")
 
 
 def run_auto_updater():
@@ -33,6 +44,7 @@ def run_auto_updater():
             process = subprocess.Popen(reset_cmd.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
             if not error:
+                clean_hf_datasets_cache()
                 pull_latest_docker_images()
                 os.system("./utils/autoupdate_validator_steps.sh")
                 time.sleep(20)
