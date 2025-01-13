@@ -83,6 +83,13 @@ class NewTaskRequest(BaseModel):
     model_config = {"protected_namespaces": ()}
 
 
+class NewTaskWithFixedDatasetsRequest(NewTaskRequest):
+    ds_repo: str | None = Field(None, description="Optional: The original repository of the dataset")
+    training_data: str = Field(..., description="The prepared training dataset")
+    synthetic_data: str = Field(..., description="The prepared synthetic dataset")
+    test_data: str = Field(..., description="The prepared test dataset")
+
+
 class NewTaskResponse(BaseModel):
     success: bool = Field(..., description="Whether the task was created successfully")
     task_id: UUID | None = Field(..., description="The ID of the task")
