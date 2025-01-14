@@ -80,7 +80,7 @@ MINIMUM_MINER_POOL = 1
 MIN_IDEAL_NUM_MINERS_IN_POOL = 9
 MAX_IDEAL_NUM_MINERS_IN_POOL = 18
 MIN_COMPETITION_HOURS = 1
-MAX_COMPETITION_HOURS = 5
+MAX_COMPETITION_HOURS = 8
 TASK_TIME_DELAY = 15  # number of minutes we wait to retry an organic request
 # how many times in total do we attempt to delay an organic request looking for miners
 MAX_DELAY_TIMES = 6
@@ -89,10 +89,10 @@ MAX_DELAY_TIMES = 6
 # scoring stuff
 SOFTMAX_TEMPERATURE = 0.5
 TEST_SCORE_WEIGHTING = 0.7  # synth will be (1 - this)
-TARGET_SCORE_RATIO = 1.05
+TARGET_SCORE_RATIO = 1.3
 MIN_TASK_SCORE = 0.0  # very tiny punishment while miners find their feet
 MAX_TASK_SCORE = 1.6
-TASK_SCORE_THRESHOLD = 0.85
+TASK_SCORE_THRESHOLD = 0.9
 REWEIGHTING_EXP = 0.5  # how much of a drop off from leader
 
 SCORING_WINDOW = 7  # number of days over which we score
