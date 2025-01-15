@@ -68,6 +68,7 @@ EXPECTED_REPO_NAME = "expected_repo_name"
 
 TEST_LOSS = "test_loss"
 SYNTH_LOSS = "synth_loss"
+SCORE_REASON = "score_reason"
 
 
 # Common Column Names (shared between tables)

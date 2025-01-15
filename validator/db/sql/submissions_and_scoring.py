@@ -106,9 +106,10 @@ async def set_task_node_quality_score(
     quality_score: float,
     test_loss: float,
     synth_loss: float,
-    psql_db: PSQLDB
+    psql_db: PSQLDB,
+    score_reason: str | None = None,
 ) -> None:
-    """Set quality score and losses for a node's task submission"""
+    """Set quality score, losses and zero score reason for a node's task submission"""
     async with await psql_db.connection() as connection:
         connection: Connection
         query = f"""
@@ -118,14 +119,16 @@ async def set_task_node_quality_score(
                 {cst.NETUID},
                 {cst.TASK_NODE_QUALITY_SCORE},
                 {cst.TEST_LOSS},
-                {cst.SYNTH_LOSS}
+                {cst.SYNTH_LOSS},
+                {cst.SCORE_REASON}
             )
-            VALUES ($1, $2, $3, $4, $5, $6)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT ({cst.TASK_ID}, {cst.HOTKEY}, {cst.NETUID}) DO UPDATE
             SET
                 {cst.TASK_NODE_QUALITY_SCORE} = $4,
                 {cst.TEST_LOSS} = $5,
-                {cst.SYNTH_LOSS} = $6
+                {cst.SYNTH_LOSS} = $6,
+                {cst.SCORE_REASON} = $7
         """
         await connection.execute(
             query,
@@ -134,7 +137,8 @@ async def set_task_node_quality_score(
             NETUID,
             quality_score,
             test_loss,
-            synth_loss
+            synth_loss,
+            score_reason,
         )
 
 
@@ -161,19 +165,30 @@ async def get_all_scores_and_losses_for_task(task_id: UUID, psql_db: PSQLDB) -> 
                 {cst.HOTKEY},
                 {cst.TASK_NODE_QUALITY_SCORE},
                 {cst.TEST_LOSS},
-                {cst.SYNTH_LOSS}
+                {cst.SYNTH_LOSS},
+                {cst.SCORE_REASON}
             FROM {cst.TASK_NODES_TABLE}
             WHERE {cst.TASK_ID} = $1
             AND {cst.NETUID} = $2
             AND {cst.TASK_NODE_QUALITY_SCORE} IS NOT NULL
         """
         rows = await connection.fetch(query, task_id, NETUID)
+
+        def clean_float(value):
+            if value is None:
+                return None
+            if isinstance(value, float):
+                if value in (float("inf"), float("-inf")) or value != value:
+                    return None
+            return value
+
         return [
             {
                 cst.HOTKEY: row[cst.HOTKEY],
-                cst.TASK_NODE_QUALITY_SCORE: row[cst.TASK_NODE_QUALITY_SCORE],
-                cst.TEST_LOSS: row[cst.TEST_LOSS],
-                cst.SYNTH_LOSS: row[cst.SYNTH_LOSS]
+                cst.TASK_NODE_QUALITY_SCORE: clean_float(row[cst.TASK_NODE_QUALITY_SCORE]),
+                cst.TEST_LOSS: clean_float(row[cst.TEST_LOSS]),
+                cst.SYNTH_LOSS: clean_float(row[cst.SYNTH_LOSS]),
+                cst.SCORE_REASON: row[cst.SCORE_REASON],
             }
             for row in rows
         ]
@@ -268,8 +283,12 @@ async def get_node_quality_metrics(hotkey: str, interval: str, psql_db: PSQLDB) 
         query = f"""
             SELECT
                 COALESCE(AVG(tn.{cst.QUALITY_SCORE}), 0) as avg_quality_score,
-                COALESCE(COUNT(CASE WHEN tn.{cst.QUALITY_SCORE} > 0 THEN 1 END)::FLOAT / NULLIF(COUNT(*), 0), 0) as success_rate,
-                COALESCE(COUNT(CASE WHEN tn.{cst.QUALITY_SCORE} > 0.9 THEN 1 END)::FLOAT / NULLIF(COUNT(*), 0), 0) as quality_rate,
+                COALESCE(COUNT(
+                    CASE WHEN tn.{cst.QUALITY_SCORE} > 0 THEN 1 END
+                )::FLOAT / NULLIF(COUNT(*), 0), 0) as success_rate,
+                COALESCE(COUNT(
+                    CASE WHEN tn.{cst.QUALITY_SCORE} > 0.9 THEN 1 END
+                )::FLOAT / NULLIF(COUNT(*), 0), 0) as quality_rate,
                 COALESCE(COUNT(*), 0) as total_count,
                 COALESCE(SUM(tn.{cst.QUALITY_SCORE}), 0) as total_score,
                 COALESCE(COUNT(CASE WHEN tn.{cst.QUALITY_SCORE} > 0 THEN 1 END), 0) as total_success,
