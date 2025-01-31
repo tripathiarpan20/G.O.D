@@ -46,7 +46,6 @@ GET_ALL_DATASETS_ID = "dataset_id"
 GET_ALL_MODELS_ID = "model_id"
 
 
-HOW_MANY_TASKS_ALLOWED_AT_ONCE = 15
 NUMBER_OF_MINUTES_BETWEEN_SYNTH_TASK_CHECK = 10
 
 
@@ -94,7 +93,7 @@ TARGET_SCORE_RATIO = 1.5
 MIN_TASK_SCORE = -0.05  # very tiny punishment while miners find their feet
 MAX_TASK_SCORE = 1.8
 TASK_SCORE_THRESHOLD = 0.85
-REWEIGHTING_EXP = 0.55  # how much of a drop off from leader
+REWEIGHTING_EXP = 0.7  # how much of a drop off from leader
 
 SCORING_WINDOW = 7  # number of days over which we score
 
@@ -104,7 +103,11 @@ MAX_CONCURRENT_TASK_PREPS = 3
 MAX_CONCURRENT_TRAININGS = 10
 MAX_CONCURRENT_EVALUATIONS = 1
 MAX_TIME_DELAY_TO_FIND_MINERS = 1  # hours
-MAX_CONCURRENT_JOBS = 16
+
+# Max jobs
+MAX_CONCURRENT_JOBS = 45
+MAX_CONCURRENT_SYNTHETIC_JOBS = 35
+## This leaves room for MAX_CONCURRENT_JOBS - MAX_CONCURRENT_SYNTHETIC_JOBS at all times
 
 
 LOGPATH = "/root/G.O.D/validator/logs"
