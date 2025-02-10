@@ -67,6 +67,23 @@ _gpu_ids = os.getenv("GPU_IDS", "").strip()
 GPU_IDS = [int(id) for id in _gpu_ids.split(",")] if _gpu_ids else [0]
 
 
+# we sample datasets with these ranges equally
+DATASET_BINS_TO_SAMPLE = [
+    (0, 80_000_000),
+    (80_000_000, 250_000_000),
+    (250_000_000, 2_000_000_000),
+]
+
+# parquet file size bins to training hours range
+TEXT_DATASET_BINS_TO_TRAINING_HOURS_RANGE = {
+    (0, 30_000_000): (1, 1),  # 0-30MB needs 1 hour
+    (30_000_000, 60_000_000): (1, 3),  # 30MB-60MB needs 1-3 hours
+    (60_000_000, 100_000_000): (2, 5),  # 60MB-100MB needs 2-5 hours
+    (100_000_000, 500_000_000): (3, 6),  # 100MB-500MB needs 3-6 hours
+    (500_000_000, 1_000_000_000): (4, 9),  # 500MB-1GB needs 4-9 hours
+    (1_000_000_000, 10_000_000_000): (5, 12),  # 1GB-10GB needs 5-12 hours
+}
+
 SYNTH_MODEL = "chat-llama-3-2-3b"
 PROMPT_GEN_ENDPOINT = "https://api.nineteen.ai/v1/chat/completions"
 GRADIENTS_ENDPOINT = "https://api.gradients.io/validator-signup"
