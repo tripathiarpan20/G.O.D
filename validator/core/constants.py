@@ -111,8 +111,8 @@ MAX_IMAGE_COMPETITION_HOURS = 2
 TASK_TIME_DELAY = 15  # number of minutes we wait to retry an organic request
 # how many times in total do we attempt to delay an organic request looking for miners
 MAX_DELAY_TIMES = 6
-# Maximum number of times we retry a task after node training failure
-MAX_EVAL_ATTEMPTS = 3
+# Maximum number of evaluation attempts when all scores are zero (including the first one)
+MAX_EVAL_ATTEMPTS = 4
 
 
 # scoring stuff  - NOTE: Will want to slowly make more exponential now we have auditing
