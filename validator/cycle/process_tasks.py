@@ -27,6 +27,23 @@ from validator.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
+def _weighted_random_shuffle(nodes: list[Node]):
+    if len(nodes) == 0:
+        return []
+    top_node_chance_multiplier = 3  # This is the chance that the top node is picked compared to the bottom node
+    nodes.sort(key=lambda x: x.incentive if x.incentive is not None else 0, reverse=True)
+    weights = [top_node_chance_multiplier - i * (top_node_chance_multiplier - 1) / len(nodes) for i in range(1, len(nodes) + 1)]
+
+    shuffled_nodes = []
+    for _ in range(len(nodes)):
+        index = random.choices(range(len(nodes)), weights=weights, k=1)[0]
+        shuffled_nodes.append(nodes[index])
+        nodes.pop(index)
+        weights.pop(index)
+
+    return shuffled_nodes
+
+
 # TODO: Improve by batching these up
 async def _make_offer(node: Node, request: MinerTaskOffer, config: Config) -> MinerTaskResponse:
     endpoint = cst.TASK_OFFER_IMAGE_ENDPOINT if request.task_type == TaskType.IMAGETASK else cst.TASK_OFFER_ENDPOINT
@@ -73,12 +90,12 @@ async def _select_miner_pool_and_add_to_task(
         return task
 
     num_of_miners_to_try_for = random.randint(cst.MIN_IDEAL_NUM_MINERS_IN_POOL, cst.MAX_IDEAL_NUM_MINERS_IN_POOL)
-    random.shuffle(available_nodes)
+    nodes_to_try_for = _weighted_random_shuffle(available_nodes)
 
     # TODO: Improve by selecting high score miners first, then lower score miners, etc
     i = 0
-    while len(selected_miners) < num_of_miners_to_try_for and available_nodes:
-        node = available_nodes.pop()
+    while len(selected_miners) < num_of_miners_to_try_for and nodes_to_try_for:
+        node = nodes_to_try_for.pop()
         with LogContext(node_id=node.node_id, miner_hotkey=node.hotkey):
             # try:
             # TODO: Batch the boi
