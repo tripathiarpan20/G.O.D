@@ -56,14 +56,14 @@ NUMBER_OF_MINUTES_BETWEEN_SYNTH_TASK_CHECK = 5
 TEST_SIZE = 0.1
 TRAIN_TEST_SPLIT_PERCENTAGE = 0.1
 GET_SYNTH_DATA = True
-MAX_SYNTH_DATA_POINTS = 150
+MAX_SYNTH_DATA_POINTS = 300
 ADDITIONAL_SYNTH_DATA_PERCENTAGE = 1.0  # same size as training set
 IMAGE_TRAIN_SPLIT_ZIP_NAME = "train_data.zip"
 IMAGE_TEST_SPLIT_ZIP_NAME = "test_data.zip"
 TEMP_PATH_FOR_IMAGES = "/tmp/validator/temp_images"
 SUPPORTED_IMAGE_FILE_EXTENSIONS = (".png", ".jpg", ".jpeg")
 MAX_FILE_SIZE_BYTES = 2147483646  # pyarrow max json load size
-MINIMUM_DATASET_ROWS = 500  # Minimum number of rows required in a dataset
+MINIMUM_DATASET_ROWS = 5000  # Minimum number of rows required in a dataset
 
 # synth stuff
 NUM_SYNTH_RETRIES = 3
@@ -76,7 +76,7 @@ GPU_IDS = [int(id) for id in _gpu_ids.split(",")] if _gpu_ids else [0]
 
 # we sample datasets with these num_rows ranges equally
 DATASET_BINS_TO_SAMPLE = [
-    (10_000, 50_000),  # we don't sample these for now as they are too small
+    (30_000, 50_000), # we don't sample these for now as they are too small
     (50_000, 1_500_000),
 ]
 
@@ -116,11 +116,10 @@ MAX_EVAL_ATTEMPTS = 4
 
 
 # scoring stuff  - NOTE: Will want to slowly make more exponential now we have auditing
-TEST_SCORE_WEIGHTING = 0.7  # Augmented will be (1 - this)
-TARGET_SCORE_RATIO = 1.5
-MIN_TASK_SCORE = -0.05
-MAX_TASK_SCORE = 1.8
-TASK_SCORE_THRESHOLD = 0.95  # You need to be higher than this to get a good score
+TEST_SCORE_WEIGHTING = 0.7  # synth will be (1 - this)
+SCORE_PENALTY = -0.05
+FIRST_PLACE_SCORE  = 2
+SECOND_PLACE_SCORE = 1
 
 SIGMOID_STEEPNESS = 15  # Higher = sharper transition
 SIGMOID_SHIFT = 0.3  # Shifts sigmoid curve horizontally
