@@ -1,13 +1,16 @@
 import json
 import os
+import re
+import subprocess
 import time
 from math import ceil
 from pathlib import Path
 from typing import Union
 
-import re
+import psutil
 import torch
 import yaml
+from accelerate.utils import find_executable_batch_size
 from accelerate.utils import find_executable_batch_size
 from axolotl.utils.data import load_tokenized_prepared_datasets
 from axolotl.utils.dict import DictDefault
@@ -35,6 +38,17 @@ from validator.utils.logging import get_logger
 
 
 logger = get_logger(__name__)
+
+
+def log_memory_stats():
+    """GPU/CPU memory monitoring"""
+    if torch.cuda.is_available():
+        allocated = torch.cuda.memory_allocated() / 1024**2
+        reserved = torch.cuda.memory_reserved() / 1024**2
+        logger.info(f"GPU Memory: Allocated: {allocated:.2f} MB, Reserved: {reserved:.2f} MB")
+
+    ram = psutil.Process().memory_info()
+    logger.info(f"RAM Usage: RSS (Resident Set Size): {ram.rss / 1024**2:.2f} MB")
 
 
 class ProgressLoggerCallback(TrainerCallback):
@@ -125,6 +139,7 @@ def evaluate_language_model_loss(
 
     eval_dataset = _load_evaluation_dataset(evaluation_config, tokenizer)
     _log_dataset_and_model_info(eval_dataset, language_model, tokenizer)
+    log_memory_stats()
 
     def custom_data_collator(features):
         return _collate_evaluation_batch(features, tokenizer)
@@ -156,6 +171,7 @@ def evaluate_language_model_loss(
         "eval_loss": eval_results["eval_loss"],
         "perplexity": torch.exp(torch.tensor(eval_results["eval_loss"])).item(),
     }
+    log_memory_stats()
     return evaluation_results
 
 
@@ -190,8 +206,13 @@ def retry_on_5xx():
 
 @retry_on_5xx()
 def load_model(model_name_or_path: str) -> AutoModelForCausalLM:
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     try:
-        return AutoModelForCausalLM.from_pretrained(model_name_or_path, token=os.environ.get("HUGGINGFACE_TOKEN"))
+        return AutoModelForCausalLM.from_pretrained(
+            model_name_or_path,
+            token=os.environ.get("HUGGINGFACE_TOKEN"),
+            device_map=device
+        )
     except RuntimeError as e:
         error_msg = str(e)
         if "size mismatch for" in error_msg and ("lm_head.weight" in error_msg or "model.embed_tokens.weight" in error_msg):
@@ -201,7 +222,8 @@ def load_model(model_name_or_path: str) -> AutoModelForCausalLM:
                 return AutoModelForCausalLM.from_pretrained(
                     model_name_or_path,
                     token=os.environ.get("HUGGINGFACE_TOKEN"),
-                    ignore_mismatched_sizes=True
+                    ignore_mismatched_sizes=True,
+                    device_map=device
                 )
         logger.error(f"Exception type: {type(e)}, message: {str(e)}")
         raise
@@ -220,8 +242,15 @@ def load_tokenizer(original_model: str) -> AutoTokenizer:
 
 @retry_on_5xx()
 def load_finetuned_model(base_model, repo: str) -> PeftModel:
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     try:
-        return PeftModel.from_pretrained(base_model, repo, is_trainable=False)
+        model = PeftModel.from_pretrained(
+            base_model,
+            repo,
+            is_trainable=False,
+            device_map=device
+        )
+        return model
     except RuntimeError as e:
         error_msg = str(e)
         if "size mismatch for" in error_msg and ("lm_head.weight" in error_msg or "model.embed_tokens.weight" in error_msg):
@@ -232,7 +261,8 @@ def load_finetuned_model(base_model, repo: str) -> PeftModel:
                     base_model,
                     repo,
                     is_trainable=False,
-                    ignore_mismatched_sizes=True
+                    ignore_mismatched_sizes=True,
+                    device_map=device
                 )
 
         logger.error(f"Exception type: {type(e)}, message: {str(e)}")
@@ -250,18 +280,27 @@ def _count_model_parameters(model: AutoModelForCausalLM) -> int:
         return 0
 
 
-def main():
-    dataset = os.environ.get("DATASET")
-    original_model = os.environ.get("ORIGINAL_MODEL")
-    dataset_type_str = os.environ.get("DATASET_TYPE", "")
-    file_format_str = os.environ.get("FILE_FORMAT")
-    models_str = os.environ.get("MODELS", "")  # Comma-separated list of LoRA repos
-    if not all([dataset, original_model, file_format_str, models_str]):
-        logger.error("Missing required environment variables.")
-        exit(1)
+def evaluate_repo(repo: str, dataset: str, original_model: str, dataset_type_str: str, file_format_str: str) -> None:
+    """Evaluate a single model repository and save results directly to file."""
+    output_dir = os.path.dirname(cst.CONTAINER_EVAL_RESULTS_PATH)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Load existing results
+    results_dict = {}
+    if os.path.exists(cst.CONTAINER_EVAL_RESULTS_PATH):
+        try:
+            with open(cst.CONTAINER_EVAL_RESULTS_PATH, "r") as f:
+                results_dict = json.load(f)
+        except json.JSONDecodeError:
+            logger.warning(f"Could not read existing results from {cst.CONTAINER_EVAL_RESULTS_PATH}, starting fresh")
+
+    # Skip if duplicate
+    if repo in results_dict:
+        logger.info(f"Skipping {repo} as it's already evaluated")
+        return
 
     file_format = FileFormat(file_format_str)
-
     try:
         dataset_type = DatasetType(dataset_type_str)
     except ValueError:
@@ -272,56 +311,75 @@ def main():
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
 
+    try:
+        try:
+            base_model = load_model(original_model)
+            if "model_params_count" not in results_dict:
+                results_dict["model_params_count"] = _count_model_parameters(base_model)
+            finetuned_model = load_finetuned_model(base_model, repo)
+            is_finetune = True
+        except Exception as lora_error:
+            logger.info(f"Loading full model... failed to load as LoRA: {lora_error}")
+            finetuned_model = load_model(repo)
+            try:
+                is_finetune = model_is_a_finetune(original_model, finetuned_model)
+            except Exception as e:
+                logger.info(f"Problem with detection of finetune for {repo}: {e}")
+                logger.info("Assuming False")
+                is_finetune = False
+
+        finetuned_model.eval()
+
+        results = evaluate_finetuned_model(
+            dataset_name=dataset,
+            finetuned_model=finetuned_model,
+            dataset_type=dataset_type,
+            file_format=file_format,
+            tokenizer=tokenizer,
+        )
+        results["is_finetune"] = is_finetune
+        results_dict[repo] = results
+    except Exception as e:
+        logger.error(f"Error evaluating {repo}: {e}", exc_info=True)
+        results_dict[repo] = str(e)
+    finally:
+        with open(cst.CONTAINER_EVAL_RESULTS_PATH, "w") as f:
+            json.dump(results_dict, f, indent=2)
+        logger.info(f"Saved evaluation results for {repo}")
+        log_memory_stats()
+
+
+def main():
+    dataset = os.environ.get("DATASET")
+    original_model = os.environ.get("ORIGINAL_MODEL")
+    dataset_type_str = os.environ.get("DATASET_TYPE", "")
+    file_format_str = os.environ.get("FILE_FORMAT")
+    models_str = os.environ.get("MODELS", "")  # Comma-separated list of LoRA repos
+    if not all([dataset, original_model, file_format_str, models_str]):
+        logger.error("Missing required environment variables.")
+        exit(1)
+
     lora_repos = [m.strip() for m in models_str.split(",") if m.strip()]
 
-    results_dict = {}
     for repo in lora_repos:
         try:
-            try:
-                base_model = load_model(original_model)
-                if "model_params_count" not in results_dict:
-                    results_dict["model_params_count"] = _count_model_parameters(base_model)
-                finetuned_model = load_finetuned_model(base_model, repo)
-                is_finetune = True
-            except Exception as lora_error:
-                logger.info(f"Loading full model... failed to load as LoRA: {lora_error}")
-                finetuned_model = load_model(repo)
-                try:
-                    is_finetune = model_is_a_finetune(original_model, finetuned_model)
-                except Exception as e:
-                    logger.info(f"Problem with detection of finetune for {repo}: {e}")
-                    logger.info("Assuming False")
-                    is_finetune = False
+            # Launching subprocess to purge memory: https://github.com/huggingface/transformers/issues/26571
+            subprocess.run([
+                "python",
+                "-m",
+                "validator.evaluation.single_eval",
+                repo,
+                dataset,
+                original_model,
+                dataset_type_str,
+                file_format_str
+            ], check=True)
+            logger.info(f"Subprocess completed for {repo}")
+            log_memory_stats()
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error running subprocess for {repo}: {e}")
 
-            finetuned_model.eval()
-
-            results = evaluate_finetuned_model(
-                dataset_name=dataset,
-                finetuned_model=finetuned_model,
-                dataset_type=dataset_type,
-                file_format=file_format,
-                tokenizer=tokenizer,
-            )
-            results["is_finetune"] = is_finetune
-            results_dict[repo] = results
-        except Exception as e:
-            logger.error(f"Error evaluating {repo}: {e}")
-            results_dict[repo] = e
-
-    output_file = "/aplp/evaluation_results.json"
-    output_dir = os.path.dirname(output_file)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    serializable_results = {
-        repo: (str(result) if isinstance(result, Exception) else result) for repo, result in results_dict.items()
-    }
-
-    with open(output_file, "w") as f:
-        json.dump(serializable_results, f, indent=2)
-
-    logger.info(f"Evaluation results saved to {output_file}")
-    logger.info(json.dumps(serializable_results, indent=2))
+    logger.info("All evaluations completed")
 
 
 if __name__ == "__main__":

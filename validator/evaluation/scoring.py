@@ -4,7 +4,6 @@ from datetime import datetime
 
 import numpy as np
 from fiber.chain.models import Node
-from scipy.stats import gmean
 
 import validator.core.constants as cts
 from core.models.payload_models import DiffusionLosses
@@ -424,7 +423,7 @@ async def _evaluate_submissions(
         for repo, _ in test_losses[4:]:
             results[repo] = (
                 # setting to 1k for now
-                EvaluationResultText(is_finetune=False, eval_loss=1000.0, perplexity=1000.0),
+                EvaluationResultText(is_finetune=True, eval_loss=1000.0, perplexity=1000.0),
                 test_eval_results[repo],
             )
 
