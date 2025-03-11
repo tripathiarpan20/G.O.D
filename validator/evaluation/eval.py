@@ -204,21 +204,38 @@ def retry_on_5xx():
     )
 
 
+def create_finetuned_cache_dir():
+    """Create and return a dedicated cache directory for finetuned models."""
+    finetuned_cache_dir = os.path.join(cst.DOCKER_EVAL_HF_CACHE_DIR, "finetuned_repos")
+    os.makedirs(finetuned_cache_dir, exist_ok=True)
+    return finetuned_cache_dir
+
+
 @retry_on_5xx()
-def load_model(model_name_or_path: str) -> AutoModelForCausalLM:
+def load_model(model_name_or_path: str, is_base_model: bool = False) -> AutoModelForCausalLM:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     try:
+        # Only use default cache for the base model
+        cache_dir = None if is_base_model else create_finetuned_cache_dir()
+
         return AutoModelForCausalLM.from_pretrained(
-            model_name_or_path, token=os.environ.get("HUGGINGFACE_TOKEN"), device_map=device
+            model_name_or_path,
+            token=os.environ.get("HUGGINGFACE_TOKEN"),
+            device_map=device,
+            cache_dir=cache_dir
         )
     except RuntimeError as e:
         error_msg = str(e)
         if "size mismatch for" in error_msg and ("lm_head.weight" in error_msg or "model.embed_tokens.weight" in error_msg):
-            pattern = re.search(r"shape torch\.Size\(\[(\d+), (\d+)\]\).*shape.*torch\.Size\(\[(\d+), \2\]\)", error_msg)
+            pattern = re.search(r'shape torch\.Size\(\[(\d+), (\d+)\]\).*shape.*torch\.Size\(\[(\d+), \2\]\)', error_msg)
             if pattern and abs(int(pattern.group(1)) - int(pattern.group(3))) == 1:
                 logger.info("Detected vocabulary size off-by-one error, attempting to load with ignore_mismatched_sizes=True")
                 return AutoModelForCausalLM.from_pretrained(
-                    model_name_or_path, token=os.environ.get("HUGGINGFACE_TOKEN"), ignore_mismatched_sizes=True, device_map=device
+                    model_name_or_path,
+                    token=os.environ.get("HUGGINGFACE_TOKEN"),
+                    ignore_mismatched_sizes=True,
+                    device_map=device,
+                    cache_dir=cache_dir
                 )
         logger.error(f"Exception type: {type(e)}, message: {str(e)}")
         raise
@@ -240,16 +257,27 @@ def load_tokenizer(original_model: str) -> AutoTokenizer:
 def load_finetuned_model(base_model, repo: str) -> PeftModel:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     try:
-        model = PeftModel.from_pretrained(base_model, repo, is_trainable=False, device_map=device)
-        return model
+        cache_dir = create_finetuned_cache_dir()
+        return PeftModel.from_pretrained(
+            base_model,
+            repo,
+            is_trainable=False,
+            device_map=device,
+            cache_dir=cache_dir
+        )
     except RuntimeError as e:
         error_msg = str(e)
         if "size mismatch for" in error_msg and ("lm_head.weight" in error_msg or "model.embed_tokens.weight" in error_msg):
-            pattern = re.search(r"shape torch\.Size\(\[(\d+), (\d+)\]\).*shape.*torch\.Size\(\[(\d+), \2\]\)", error_msg)
+            pattern = re.search(r'shape torch\.Size\(\[(\d+), (\d+)\]\).*shape.*torch\.Size\(\[(\d+), \2\]\)', error_msg)
             if pattern and abs(int(pattern.group(1)) - int(pattern.group(3))) == 1:
                 logger.info("Detected vocabulary size off-by-one error, attempting to load with ignore_mismatched_sizes=True")
                 return PeftModel.from_pretrained(
-                    base_model, repo, is_trainable=False, ignore_mismatched_sizes=True, device_map=device
+                    base_model,
+                    repo,
+                    is_trainable=False,
+                    ignore_mismatched_sizes=True,
+                    device_map=device,
+                    cache_dir=cache_dir
                 )
 
         logger.error(f"Exception type: {type(e)}, message: {str(e)}")
@@ -300,14 +328,14 @@ def evaluate_repo(repo: str, dataset: str, original_model: str, dataset_type_str
 
     try:
         try:
-            base_model = load_model(original_model)
+            base_model = load_model(original_model, is_base_model=True)
             if "model_params_count" not in results_dict:
                 results_dict["model_params_count"] = _count_model_parameters(base_model)
             finetuned_model = load_finetuned_model(base_model, repo)
             is_finetune = True
         except Exception as lora_error:
             logger.info(f"Loading full model... failed to load as LoRA: {lora_error}")
-            finetuned_model = load_model(repo)
+            finetuned_model = load_model(repo, is_base_model=False)
             try:
                 is_finetune = model_is_a_finetune(original_model, finetuned_model)
             except Exception as e:
@@ -352,19 +380,16 @@ def main():
     for repo in lora_repos:
         try:
             # Launching subprocess to purge memory: https://github.com/huggingface/transformers/issues/26571
-            subprocess.run(
-                [
-                    "python",
-                    "-m",
-                    "validator.evaluation.single_eval",
-                    repo,
-                    dataset,
-                    original_model,
-                    dataset_type_str,
-                    file_format_str,
-                ],
-                check=True,
-            )
+            subprocess.run([
+                "python",
+                "-m",
+                "validator.evaluation.single_eval",
+                repo,
+                dataset,
+                original_model,
+                dataset_type_str,
+                file_format_str
+            ], check=True)
             logger.info(f"Subprocess completed for {repo}")
             log_memory_stats()
         except subprocess.CalledProcessError as e:
