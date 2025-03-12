@@ -10,14 +10,18 @@ from fiber import Keypair
 from core.models.utility_models import Message
 from core.models.utility_models import Prompts
 from core.models.utility_models import Role
+from validator.core.constants import END_OF_REASONING_TAG
 from validator.core.constants import MAX_SYNTH_DATA_POINTS
 from validator.core.constants import OUTPUT_REFORMULATION_PROBABILITY
 from validator.core.constants import PROMPT_PATH
 from validator.core.constants import SYNTH_GEN_BATCH_SIZE
-from validator.core.constants import SYNTH_MODEL
-from validator.core.constants import SYNTH_MODEL_TEMPERATURE
+from validator.core.constants import TEXT_SYNTH_MODEL
+from validator.core.constants import TEXT_SYNTH_MODEL_MAX_TOKENS
+from validator.core.constants import TEXT_SYNTH_MODEL_TEMPERATURE
 from validator.evaluation.utils import get_default_dataset_config
-from validator.utils.call_endpoint import post_to_nineteen_chat
+from validator.utils.llm import convert_to_nineteen_payload
+from validator.utils.llm import extract_json_from_response
+from validator.utils.llm import post_to_nineteen_chat_with_reasoning
 from validator.utils.logging import get_logger
 
 
@@ -93,23 +97,12 @@ def check_the_synthetic_data(synthetic_data_point: dict, original_data_columns: 
     return set(synthetic_data_point.keys()) == set(original_data_columns)
 
 
-def convert_to_nineteen_payload(
-    messages: List[Message], model: str = SYNTH_MODEL, temperature: float = SYNTH_MODEL_TEMPERATURE, stream: bool = False
-) -> dict:
-    return {
-        "messages": [message.model_dump() for message in messages],
-        "model": model,
-        "temperature": temperature,
-        "stream": stream,
-    }
-
-
 async def generate_from_distribution(row: dict, prompts: Prompts, keypair: Keypair) -> str:
     messages = create_messages_for_distribution_replication(row, prompts)
-    payload = convert_to_nineteen_payload(messages)
-    synthetic_data_point = await post_to_nineteen_chat(payload, keypair)
+    payload = convert_to_nineteen_payload(messages, TEXT_SYNTH_MODEL, TEXT_SYNTH_MODEL_TEMPERATURE, TEXT_SYNTH_MODEL_MAX_TOKENS)
+    synthetic_data_point = await post_to_nineteen_chat_with_reasoning(payload, keypair, END_OF_REASONING_TAG)
     json_synthetic_data_point = (
-        json.loads(synthetic_data_point) if isinstance(synthetic_data_point, str) else synthetic_data_point
+        extract_json_from_response(synthetic_data_point) if isinstance(synthetic_data_point, str) else synthetic_data_point
     )
     return json_synthetic_data_point
 
@@ -117,18 +110,18 @@ async def generate_from_distribution(row: dict, prompts: Prompts, keypair: Keypa
 async def generate_from_output(row: dict, output_field: str, prompts: Prompts, keypair: Keypair) -> str:
     # Step 1: Reformulate output and get description
     messages = create_messages_for_output_reformulation(row, output_field, prompts)
-    payload = convert_to_nineteen_payload(messages)
-    result = await post_to_nineteen_chat(payload, keypair)
-    result_dict = json.loads(result) if isinstance(result, str) else result
+    payload = convert_to_nineteen_payload(messages, TEXT_SYNTH_MODEL, TEXT_SYNTH_MODEL_TEMPERATURE, TEXT_SYNTH_MODEL_MAX_TOKENS)
+    result = await post_to_nineteen_chat_with_reasoning(payload, keypair, END_OF_REASONING_TAG)
+    result_dict = extract_json_from_response(result) if isinstance(result, str) else result
     reformulated_output = result_dict["reformulated_output"]
     description = result_dict["description"]
 
     # Step 2: Generate inputs based on reformulated output
     schema = {k: type(v).__name__ for k, v in row.items()}
     messages = create_messages_for_input_generation(reformulated_output, description, output_field, schema, prompts)
-    payload = convert_to_nineteen_payload(messages)
-    result = await post_to_nineteen_chat(payload, keypair)
-    generated_inputs = json.loads(result) if isinstance(result, str) else result
+    payload = convert_to_nineteen_payload(messages, TEXT_SYNTH_MODEL, TEXT_SYNTH_MODEL_TEMPERATURE, TEXT_SYNTH_MODEL_MAX_TOKENS)
+    result = await post_to_nineteen_chat_with_reasoning(payload, keypair, END_OF_REASONING_TAG)
+    generated_inputs = extract_json_from_response(result) if isinstance(result, str) else result
     generated_inputs[output_field] = reformulated_output  # Double check the output is unchanged
 
     return generated_inputs
@@ -138,7 +131,7 @@ async def generate_augmented_text_dataset(
     sampled_data: List[dict], column_to_reformulate: str | None, keypair: Keypair
 ) -> List[dict]:
     prompts = load_prompts()
-    logger.info("Creating an augmented dataset...")  # Task id would be nice here
+    logger.info(f"Creating an augmented dataset with {len(sampled_data)} samples...")
     synthetic_dataset = []
     json_errors = 0
     generic_errors = 0
@@ -153,17 +146,23 @@ async def generate_augmented_text_dataset(
             json_synthetic_data_point = await generate_from_output(row, column_to_reformulate, prompts, keypair)
         else:
             json_synthetic_data_point = await generate_from_distribution(row, prompts, keypair)
-        logger.info(json_synthetic_data_point)
+        logger.debug(f"Generated data point: {json_synthetic_data_point}")
         if check_the_synthetic_data(json_synthetic_data_point, row.keys()):
             return json_synthetic_data_point
         else:
-            raise ValueError(
+            error_message = (
                 f"Generated data point has incorrect schema. Expected keys: {set(row.keys())}, "
                 f"got: {set(json_synthetic_data_point.keys())}"
             )
+            logger.error(error_message)
+            raise ValueError(error_message)
 
-    for i in range(0, len(sampled_data), SYNTH_GEN_BATCH_SIZE):
-        batch = sampled_data[i : i + SYNTH_GEN_BATCH_SIZE]
+    total_batches = (len(sampled_data) + SYNTH_GEN_BATCH_SIZE - 1) // SYNTH_GEN_BATCH_SIZE
+    for batch_idx in range(0, len(sampled_data), SYNTH_GEN_BATCH_SIZE):
+        batch = sampled_data[batch_idx : batch_idx + SYNTH_GEN_BATCH_SIZE]
+        current_batch = (batch_idx // SYNTH_GEN_BATCH_SIZE) + 1
+        logger.info(f"Processing batch {current_batch}/{total_batches} ({len(batch)} samples)")
+
         tasks = [process_row(row, column_to_reformulate) for row in batch]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -184,6 +183,15 @@ async def generate_augmented_text_dataset(
 
         synthetic_dataset.extend(batch_results)
 
-    logger.info(f"Generated {len(synthetic_dataset)} augmented data points")
+        if batch_results:
+            logger.info(
+                f"Batch {current_batch}/{total_batches} complete. "
+                f"Generated {len(batch_results)}/{len(batch)} samples successfully"
+            )
+
+    logger.info(
+        f"Finished processing all batches. Generated {len(synthetic_dataset)} samples total. "
+        f"JSON errors: {json_errors}, Other errors: {generic_errors}"
+    )
 
     return synthetic_dataset
